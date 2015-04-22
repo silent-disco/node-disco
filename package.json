@@ -1,0 +1,38 @@
+{
+  "name": "node-disco",
+  "version": "0.0.0",
+  "description": "An silent disco back-end written in NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:silent-disco/node-disco.git"
+  },
+  "keywords": [
+    "silent",
+    "disco",
+    "koa",
+    "socket.io",
+    "disco",
+    "music",
+    "soundcloud",
+    "redis",
+    "websocket",
+    "web",
+    "application"
+  ],
+  "author": "Nico Rehwaldt <git_nikku@nixis.de>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/silent-disco/node-disco/issues"
+  },
+  "homepage": "https://github.com/silent-disco/node-disco",
+  "dependencies": {
+    "co": "^4.5.2",
+    "co-redis": "^1.1.1",
+    "koa.io": "0.0.3",
+    "redis": "^0.12.1"
+  }
+}
