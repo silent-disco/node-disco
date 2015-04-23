@@ -1,9 +1,8 @@
-var db = require('../../api/db');
+var db = require('../../../../api/db'),
+    RoomsModel = require('../../../../api/rooms/model');
 
-var Rooms = require('../../api/rooms');
 
-
-describe('api', function() {
+describe('api/rooms/model', function() {
 
   var dbClient;
 
@@ -21,7 +20,7 @@ describe('api', function() {
     var rooms;
 
     beforeEach(function() {
-      rooms = new Rooms(dbClient);
+      rooms = new RoomsModel(dbClient);
     });
 
     afterEach(function*() {
@@ -29,26 +28,40 @@ describe('api', function() {
     });
 
 
-    it('should get', function*() {
+    it('should get skeleton', function*() {
 
       // when
-      yield rooms.get('aaa');
+      var room = yield rooms.get('aaa');
 
       // then
-      expect(yield rooms.getAll()).to.eql([ 'aaa' ]);
+      var exists = yield room.exists();
+
+      expect(exists).to.be.falsy;
+    });
+
+
+    it('should get instantiating', function*() {
+
+      // when
+      var room = yield rooms.get('aaa', true);
+
+      // then
+      var exists = yield room.exists();
+
+      expect(exists).to.be.truthy;
     });
 
 
     it('should remove', function*() {
 
       // given
-      yield rooms.get('aaa');
+      yield rooms.get('aaa', true);
 
       // when
       yield rooms.remove('aaa');
 
       // then
-      expect(yield rooms.getAll()).to.be.empty;
+      expect(rooms.getAll()).to.be.empty;
     });
 
 
@@ -57,7 +70,7 @@ describe('api', function() {
       it('should access', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // then
         var members = yield room.members.getAll();
@@ -70,7 +83,7 @@ describe('api', function() {
       it('should add', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // when
         yield room.members.add({ id: 'Klaus' });
@@ -85,7 +98,7 @@ describe('api', function() {
       it('should remove', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // with member
         yield room.members.add({ id: 'Klaus' });
@@ -108,7 +121,7 @@ describe('api', function() {
       it('should access', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // then
         var playlist = yield room.playlist.getAll();
@@ -121,7 +134,7 @@ describe('api', function() {
       it('should add', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // when
         yield room.playlist.add({ id: 'Abba' });
@@ -136,7 +149,7 @@ describe('api', function() {
       it('should append', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // with Abba
         yield room.playlist.add({ id: 'Abba' });
@@ -154,7 +167,7 @@ describe('api', function() {
       it('should insert before', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // with two songs
         yield room.playlist.add({ id: 'Abba' });
@@ -173,7 +186,7 @@ describe('api', function() {
       it('should insert after', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // with two songs
         yield room.playlist.add({ id: 'Abba' });
@@ -192,7 +205,7 @@ describe('api', function() {
       it('should remove', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // with two songs
         yield room.playlist.add({ id: 'Abba' });
@@ -211,7 +224,7 @@ describe('api', function() {
       it('should empty', function*() {
 
         // given
-        var room = yield rooms.get('aaa');
+        var room = yield rooms.get('aaa', true);
 
         // with one songs
         yield room.playlist.add({ id: 'Beethoven' });

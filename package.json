@@ -32,8 +32,11 @@
   "dependencies": {
     "co": "^4.5.2",
     "co-redis": "^1.1.1",
+    "koa-generic-session": "^1.8.0",
+    "koa-static-cache": "^3.1.1",
     "koa.io": "0.0.3",
-    "redis": "^0.12.1"
+    "redis": "^0.12.1",
+    "uuid": "^2.0.1"
   },
   "devDependencies": {
     "chai": "^2.2.0",
