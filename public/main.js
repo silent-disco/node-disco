@@ -240,7 +240,7 @@ $(function() {
 
     connected = true;
     // Display the welcome message
-    var message = "Welcome to Socket.IO Chat – ";
+    var message = "Welcome to silent disco – ";
     log(message, {
       prepend: true
     });

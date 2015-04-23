@@ -10,7 +10,21 @@ var db = require('./api/db'),
 
 var app = koa();
 
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 3000,
+    host = process.env.HOST || '127.0.0.1';
+
+var redisAuth = null,
+    redisPort = 6379,
+    redisHost = '127.0.0.1';
+
+if (process.env.NODE_ENV === 'openshift') {
+  port = process.env.OPENSHIFT_DIY_PORT;
+  host = process.env.OPENSHIFT_DIY_IP;
+
+  redisAuth = process.env.REDIS_PASSWORD;
+  redisHost = process.env.OPENSHIFT_REDIS_HOST;
+  redisPort = process.env.OPENSHIFT_REDIS_PORT;
+}
 
 // Routing
 app.use(staticCache(path.join(__dirname, 'public')));
@@ -20,12 +34,12 @@ app.use(function*() {
   this.type = 'html';
 });
 
-app.listen(port, function() {
+app.listen(port, host, function() {
   console.log('Server listening at port %d', port);
 });
 
 
-var dbClient = db.createClient();
+var dbClient = db.createClient(redisPort, redisHost, { auth_pass: redisAuth });
 
 var rooms = new RoomsModel(dbClient);
 

@@ -1,0 +1,11 @@
+#!/bin/bash
+# The logic to start up your application should be put in this
+# script. The application will work only if it binds to
+# $OPENSHIFT_DIY_IP:8080
+
+(cd $OPENSHIFT_REPO_DIR && \
+  NODE_ENV=openshift \
+  HOME=$OPENSHIFT_DATA_DIR \
+  SHELL=/bin/bash \
+  nohup $OPENSHIFT_DATA_DIR/nave/nave.sh use 1.7.1 \
+  node index.js |& /usr/bin/logshifter -tag diy) &

@@ -1,0 +1,21 @@
+#!/bin/bash
+# This is a simple script and will be executed on your CI system if
+# available.  Otherwise it will execute while your application is stopped
+# before the build step.  This script gets executed directly, so it
+# could be python, php, ruby, etc.
+
+NAVE=$OPENSHIFT_DATA_DIR/nave/nave.sh
+
+# If `nave` doesn't exist we get it from GitHub.
+if [ ! -f $NAVE ]; then
+  echo 'Downloading isaacs/nave from GitHub...'
+  git clone https://github.com/isaacs/nave.git $OPENSHIFT_DATA_DIR/nave
+fi
+
+# We go into the repo where the app lives so we can run `npm install` in there.
+cd $OPENSHIFT_REPO_DIR
+
+# Use `nave` to make sure we use the right `node` and `npm` versions.
+# We set the `$HOME` environment variable to data dir as this is the only place
+# where we can write and `npm` will need to do so in home.
+HOME=$OPENSHIFT_DATA_DIR SHELL=/bin/bash $NAVE use 1.7.1 npm install --production
