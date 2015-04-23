@@ -23,7 +23,14 @@ $(function() {
   var lastTypingTime;
   var $currentInput = $userNameInput.focus();
 
-  var socket = io();
+  var split = window.location.host.split(':');
+
+  // fix websocket connection port on open shift
+  if (split[0].indexOf('rhcloud.com') !== -1) {
+    split[1] = 8443;
+  }
+
+  var socket = io(split.join(':'));
 
   function addParticipantsMessage (data) {
     var message = '';
