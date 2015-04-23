@@ -5,27 +5,16 @@
 A [silent disco](https://en.wikipedia.org/wiki/Silent_disco) backend written in [NodeJS](https://nodejs.org/).
 
 
-## Database
+## Runtime Environment
 
-The disco uses [Redis](http://redis.io/) as a database backend.
-
-
-#### Setup
-
-Provide a database listening on `localhost:6379`, i.e. via [Docker](https://www.docker.com/):
-
-```
-mkdir -p ../lib/redis/data
-```
-
-Run the container:
-
-```
-(cd ../lib/redis && docker run -p 6379:6379 -v $(pwd)/data:/data -d redis:2.6 redis-server \
-    --appendonly yes)
-```
+This section gives you a short overview on the required run environment. Have a look at the [setup instructions](https://github.com/silent-disco/node-disco/blob/master/docs/DEV_SETUP.md) if you would like to know how run the node disco on your machine.
 
 
-## NodeJS
+#### Redis
 
-This disco requires [NodeJS](https://nodejs.org/) with the `--harmony` flag or [io.js](https://iojs.org/) to run.
+The disco uses [Redis](http://redis.io/) as a database backend. It expects Redis to be up and running at `localhost:6379`.
+
+
+#### NodeJS
+
+This disco runs on [NodeJS](https://nodejs.org/) with the `--harmony` flag or [io.js](https://iojs.org/).
