@@ -1,5 +1,7 @@
 # node disco
 
+[![Build Status](https://travis-ci.org/silent-disco/node-disco.svg?branch=master)](https://travis-ci.org/silent-disco/node-disco)
+
 A [silent disco](https://en.wikipedia.org/wiki/Silent_disco) backend written in [NodeJS](https://nodejs.org/).
 
 
