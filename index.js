@@ -1,14 +1,11 @@
-var redis  = require('redis'),
-    redisClient = redis.createClient();
+var co = require('co'),
+    db = require('./api/db');
 
-var co = require('co');
+var dbClient = db.createClient();
 
-var coRedis = require('co-redis')(redisClient);
+var Rooms = require('./api/rooms');
 
-var Rooms = require('./rooms');
-
-
-var rooms = new Rooms(coRedis);
+var rooms = new Rooms(dbClient);
 
 co(function*() {
 
@@ -34,31 +31,36 @@ co(function*() {
 
 
   // songs
-  console.log('songs (0)', yield room.songs.getAll());
+  console.log('songs (0)', yield room.playlist.getAll());
 
   console.log('add song abba');
-  yield room.songs.add({ id: 'Abba' });
+  yield room.playlist.add({ id: 'Abba' });
 
   console.log('add song foobar after Abba');
-  yield room.songs.add({ id: 'foobar' }, 'AFTER', 'Abba');
+  yield room.playlist.add({ id: 'foobar' }, 'AFTER', 'Abba');
 
   console.log('add song Kind before Abba');
-  yield room.songs.add({ id: 'Kind' }, 'BEFORE', 'Abba');
+  yield room.playlist.add({ id: 'Kind' }, 'BEFORE', 'Abba');
 
-  console.log('songs (1)', yield room.songs.getAll());
+  console.log('songs (1)', yield room.playlist.getAll());
 
   console.log('remove song abba');
-  yield room.songs.remove({ id: 'Abba' });
+  yield room.playlist.remove({ id: 'Abba' });
 
-  console.log('songs (2)', yield room.songs.getAll());
+  console.log('songs (2)', yield room.playlist.getAll());
 
   console.log('remove room aaa');
   yield rooms.remove('aaa');
 
+  // remove room
   console.log('rooms', yield rooms.getAll());
 
+  // recreate it
   console.log('recreate room aaa');
   room = yield rooms.get('aaa');
 
-  console.log('songs (3)', yield room.songs.getAll());
+  console.log('songs (3)', yield room.playlist.getAll());
+  console.log('members (3)', yield room.members.getAll());
+
+  dbClient.quit();
 });

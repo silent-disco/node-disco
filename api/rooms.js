@@ -52,7 +52,9 @@ function Members(client, id) {
   };
 
   this.remove = function(member) {
-    return client.hdel(MEMBERS_KEY, member.id);
+    var id = member.id || member;
+
+    return client.hdel(MEMBERS_KEY, id);
   };
 
   this.getAll = function() {
@@ -60,7 +62,7 @@ function Members(client, id) {
   };
 }
 
-function Songs(client, id) {
+function Playlist(client, id) {
 
   // LIST{id}
   var ORDER_KEY = `room:${id}:playlist:order`;
@@ -96,11 +98,14 @@ function Songs(client, id) {
   };
 
   this.remove = function*(song) {
+
+    var id = song.id || song;
+
     // LREM key count value
-    yield client.lrem(ORDER_KEY, 0, song.id);
+    yield client.lrem(ORDER_KEY, 0, id);
 
     // HDEL key field
-    yield client.hdel(PLAYLIST_KEY, song.id);
+    yield client.hdel(PLAYLIST_KEY, id);
   };
 
   this.getAll = function*() {
@@ -121,7 +126,7 @@ function Room(client, id) {
   var ROOM_KEY = `room:${id}`;
 
 
-  this.songs = new Songs(client, id);
+  this.playlist = new Playlist(client, id);
 
   this.members = new Members(client, id);
 
@@ -170,6 +175,21 @@ function Rooms(client) {
   // SET{STRING} rooms = 1 2 3 4 5 6
   this.getAll = function() {
     return client.smembers(ROOMS_KEY);
+  };
+
+
+  /**
+   * Clear all rooms. Dangerous stuff.
+   */
+  this.clear = function*() {
+
+    var roomIds = yield this.getAll();
+
+    var self = this;
+
+    yield roomIds.map(function*(id) {
+      return yield self.remove(id);
+    });
   };
 }
 

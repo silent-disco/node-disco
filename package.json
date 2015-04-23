@@ -4,7 +4,7 @@
   "description": "An silent disco back-end written in NodeJS",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -r co-mocha -r test/expect -c --recursive test/spec"
   },
   "repository": {
     "type": "git",
@@ -34,5 +34,10 @@
     "co-redis": "^1.1.1",
     "koa.io": "0.0.3",
     "redis": "^0.12.1"
+  },
+  "devDependencies": {
+    "chai": "^2.2.0",
+    "co-mocha": "^1.1.0",
+    "mocha": "^2.2.4"
   }
 }

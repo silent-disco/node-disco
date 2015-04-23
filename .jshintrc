@@ -1,3 +1,6 @@
 {
-  "esnext": true
+  "node": true,
+  "esnext": true,
+  "expr": true,
+  "unused": "vars"
 }
