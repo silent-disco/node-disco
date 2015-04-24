@@ -1,5 +1,8 @@
 var uuid = require('uuid');
 
+var sanitize = function(str) {
+  return str.replace(/[^A-z0-9_-]+/g, '');
+};
 
 function now() {
   return new Date().getTime();
@@ -110,6 +113,10 @@ function RoomsEndpoint(rooms, app) {
     }
 
     console.log('[%s] user %s joins room', roomId, userName);
+
+    roomId = sanitize(roomId);
+    userName = sanitize(userName);
+
 
     try {
       // retrieve room, creating it on the fly

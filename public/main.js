@@ -6,9 +6,16 @@ $(function() {
    * @return {String} extracted room name
    */
   function roomFromUrl() {
-    var roomMatch = /\/r\/([A-z0-9]+)$/.exec(window.location.href);
 
-    return (roomMatch && roomMatch[1]) || 'lobby';
+    var href = window.location.href;
+
+    var roomMatch = /\/(r\/([A-z0-9_-]+))?$/.exec(href);
+
+    if (!roomMatch) {
+      window.history.replaceState(null, null, '/');
+    }
+
+    return (roomMatch && roomMatch[2]) || 'lobby';
   }
 
   /**
@@ -27,6 +34,10 @@ $(function() {
     return io(split.join(':'));
   }
 
+  var roomId = roomFromUrl();
+  var socket = createSocket();
+
+
   var FADE_TIME = 150; // ms
   var TYPING_TIMER_LENGTH = 400; // ms
   var COLORS = [
@@ -44,14 +55,27 @@ $(function() {
   var $loginPage = $('.login.page'); // The login page
   var $chatPage = $('.chat.page'); // The chatroom page
 
-  // Prompt for setting a userName
   var user;
   var connected = false;
   var typing = false;
   var lastTypingTime;
   var $currentInput = $userNameInput.focus();
 
-  var socket = createSocket();
+  // update room name in login page
+  $loginPage.find('.roomName').text(roomId);
+  $loginPage.fadeIn();
+
+  $userNameInput.focus();
+
+  window.addEventListener('popstate', function(e) {
+    var newRoomId = roomFromUrl();
+
+    if (user && newRoomId !== roomId) {
+      roomId = newRoomId;
+
+      join(user);
+    }
+  });
 
   function addParticipantsMessage(data) {
     var message = '';
@@ -64,21 +88,28 @@ $(function() {
   }
 
 
-  // Sets the client's userName
-  function setUser() {
+  function join(existingUser) {
     var userName = cleanInput($userNameInput.val().trim());
 
-    // If the userName is valid
+    // check if login via user name selection
+    // is requested
     if (userName) {
       $loginPage.fadeOut();
       $chatPage.show();
       $loginPage.off('click');
       $currentInput = $inputMessage.focus();
+    }
 
+    // if not, keep already used user name
+    if (existingUser) {
+      userName = existingUser.name;
+    }
+
+    if (userName) {
       user = { name: userName };
 
       // Tell the server your userName
-      socket.emit('join', roomFromUrl(), userName);
+      socket.emit('join', roomId, userName);
     }
   }
 
@@ -236,7 +267,7 @@ $(function() {
         socket.emit('stopped-typing');
         typing = false;
       } else {
-        setUser();
+        join();
       }
     }
   });
