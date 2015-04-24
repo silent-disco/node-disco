@@ -140,7 +140,8 @@ function RoomsEndpoint(rooms, app) {
       // send local joined event back
       emit(this, 'joined', {
         activeUsers: activeUsers,
-        user: user
+        user: user,
+        roomId: roomId
       });
     } catch (e) {
       notifyError(this, e);

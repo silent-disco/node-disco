@@ -1,4 +1,32 @@
 $(function() {
+
+  /**
+   * Extract the room from the users
+   *
+   * @return {String} extracted room name
+   */
+  function roomFromUrl() {
+    var roomMatch = /\/r\/([A-z0-9]+)$/.exec(window.location.href);
+
+    return (roomMatch && roomMatch[1]) || 'lobby';
+  }
+
+  /**
+   * Creates a new socket.io instance.
+   *
+   * @return {IoSocket}
+   */
+  function createSocket() {
+    var split = window.location.host.split(':');
+
+    // fix websocket connection port on open shift
+    if (split[0].indexOf('rhcloud.com') !== -1) {
+      split[1] = 8443;
+    }
+
+    return io(split.join(':'));
+  }
+
   var FADE_TIME = 150; // ms
   var TYPING_TIMER_LENGTH = 400; // ms
   var COLORS = [
@@ -23,16 +51,9 @@ $(function() {
   var lastTypingTime;
   var $currentInput = $userNameInput.focus();
 
-  var split = window.location.host.split(':');
+  var socket = createSocket();
 
-  // fix websocket connection port on open shift
-  if (split[0].indexOf('rhcloud.com') !== -1) {
-    split[1] = 8443;
-  }
-
-  var socket = io(split.join(':'));
-
-  function addParticipantsMessage (data) {
+  function addParticipantsMessage(data) {
     var message = '';
     if (data.activeUsers === 1) {
       message += "there's 1 participant";
@@ -41,6 +62,7 @@ $(function() {
     }
     log(message);
   }
+
 
   // Sets the client's userName
   function setUser() {
@@ -53,14 +75,10 @@ $(function() {
       $loginPage.off('click');
       $currentInput = $inputMessage.focus();
 
-      var roomMatch = /\?room=([A-z0-9]+)/.exec(window.location.href);
-
-      var room = (roomMatch && roomMatch[1]) || 'lobby';
-
       user = { name: userName };
 
       // Tell the server your userName
-      socket.emit('join', room, userName);
+      socket.emit('join', roomFromUrl(), userName);
     }
   }
 
@@ -247,7 +265,7 @@ $(function() {
 
     connected = true;
     // Display the welcome message
-    var message = "Welcome to silent disco – ";
+    var message = "Welcome to silent disco / " + data.roomId + " – ";
     log(message, {
       prepend: true
     });
@@ -261,8 +279,6 @@ $(function() {
 
   // Whenever the server emits 'user joined', log it in the chat body
   socket.on('user-joined', function(data) {
-    console.log(data);
-
     log(data.user.name + ' joined');
     addParticipantsMessage(data);
   });
