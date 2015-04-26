@@ -133,12 +133,6 @@ function RoomsEndpoint(rooms, app) {
 
       var activeUsers = yield room.members.count();
 
-      // echo that a person has connected
-      broadcast(this, 'user-joined', {
-        user: user,
-        activeUsers: activeUsers
-      });
-
       this.socket.join(roomId);
 
       this.user = user;
@@ -150,6 +144,13 @@ function RoomsEndpoint(rooms, app) {
         user: user,
         roomId: roomId
       });
+
+      // echo that a person has connected
+      broadcast(this, 'user-joined', {
+        user: user,
+        activeUsers: activeUsers
+      });
+
     } catch (e) {
       notifyError(this, e);
     }
