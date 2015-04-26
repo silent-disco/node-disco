@@ -4,7 +4,8 @@
   "description": "An silent disco back-end written in NodeJS",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -r co-mocha -r test/expect -c --recursive test/spec"
+    "test": "mocha -r co-mocha -r test/expect -c --recursive test/spec",
+    "build-client": "lessc client/style.less > public/style.css && cp client/index.html public && cp client/main.js public"
   },
   "repository": {
     "type": "git",
@@ -41,6 +42,7 @@
   "devDependencies": {
     "chai": "^2.2.0",
     "co-mocha": "^1.1.0",
+    "less": "^2.5.0",
     "mocha": "^2.2.4"
   }
 }

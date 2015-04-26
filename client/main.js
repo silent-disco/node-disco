@@ -9,7 +9,7 @@ $(function() {
 
     var href = window.location.href;
 
-    var roomMatch = /\/(r\/([A-z0-9_-]+))?$/.exec(href);
+    var roomMatch = /\/(r\/([A-z0-9_-]+))?(\?.*|)$/.exec(href);
 
     if (!roomMatch) {
       window.history.replaceState(null, null, '/');
@@ -48,12 +48,12 @@ $(function() {
 
   // Initialize varibles
   var $window = $(window);
-  var $userNameInput = $('.userNameInput'); // Input for userName
-  var $messages = $('.messages'); // Messages area
-  var $inputMessage = $('.inputMessage'); // Input message input box
+  var $userNameInput = $('input.user-name');
+  var $actions = $('.actions');
+  var $inputMessage = $('.new-message textarea'); // Input message input box
 
-  var $loginPage = $('.login.page'); // The login page
-  var $chatPage = $('.chat.page'); // The chatroom page
+  var $loginPage = $('.login-page'); // The login page
+  var $roomPage = $('.room-page'); // The chatroom page
 
   var user;
   var connected = false;
@@ -62,7 +62,7 @@ $(function() {
   var $currentInput = $userNameInput.focus();
 
   // update room name in login page
-  $loginPage.find('.roomName').text(roomId);
+  $loginPage.find('.room-name').text(roomId);
   $loginPage.fadeIn();
 
   $userNameInput.focus();
@@ -80,9 +80,9 @@ $(function() {
   function addParticipantsMessage(data) {
     var message = '';
     if (data.activeUsers === 1) {
-      message += "there's 1 participant";
+      message += 'you are the only one in this room';
     } else {
-      message += "there are " + data.activeUsers + " participants";
+      message += 'there are ' + data.activeUsers + ' users in this room';
     }
     log(message);
   }
@@ -95,7 +95,7 @@ $(function() {
     // is requested
     if (userName) {
       $loginPage.fadeOut();
-      $chatPage.show();
+      $roomPage.show();
       $loginPage.off('click');
       $currentInput = $inputMessage.focus();
     }
@@ -121,9 +121,10 @@ $(function() {
     // if there is a non-empty message and a socket connection
     if (message && connected) {
       $inputMessage.val('');
-      addChatMessage({
+      addChatAction({
         user: user,
-        message: message
+        text: message,
+        message : true
       });
 
       socket.emit('message', message);
@@ -131,46 +132,49 @@ $(function() {
   }
 
   // Log a message
-  function log (message, options) {
+  function log(message, options) {
     var $el = $('<li>').addClass('log').text(message);
-    addMessageElement($el, options);
+    addActionElement($el, options);
   }
 
   // Adds the visual chat message to the message list
-  function addChatMessage (data, options) {
+  function addChatAction(data, options) {
     // Don't fade the message in if there is an 'X was typing'
-    var $typingMessages = getTypingMessages(data);
+    var $typingMessages = getTypingActions(data);
     options = options || {};
+
     if ($typingMessages.length !== 0) {
       options.fade = false;
       $typingMessages.remove();
     }
 
-    var $userNameDiv = $('<span class="userName"/>')
-      .text(data.user.name)
-      .css('color', getUserColor(data.user));
-    var $messageBodyDiv = $('<span class="messageBody">')
-      .text(data.message);
+    var $authorSpan = $('<span class="author"><span class="name"></span></span>');
 
-    var typingClass = data.typing ? 'typing' : '';
-    var $messageDiv = $('<li class="message"/>')
-      .data('userName', data.user.name)
-      .addClass(typingClass)
-      .append($userNameDiv, $messageBodyDiv);
+    $authorSpan
+      .find('.name')
+        .text(data.user.name)
+        .css('color', getUserColor(data.user));
 
-    addMessageElement($messageDiv, options);
+    var $actionBodySpan = $('<span class="body">').text(data.text);
+
+    var $actionDiv = $('<div class="action"/>')
+      .data('user', data.user.name)
+      .addClass(data.typing ? 'typing' : (data.message ? 'message' : ''))
+      .append($authorSpan, $actionBodySpan);
+
+    addActionElement($actionDiv, options);
   }
 
   // Adds the visual chat typing message
-  function addChatTyping (data) {
+  function addChatTyping(data) {
     data.typing = true;
-    data.message = 'is typing';
-    addChatMessage(data);
+    data.text = 'is typing';
+    addChatAction(data);
   }
 
   // Removes the visual chat typing message
   function removeChatTyping (data) {
-    getTypingMessages(data).fadeOut(function () {
+    getTypingActions(data).fadeOut(function () {
       $(this).remove();
     });
   }
@@ -180,7 +184,7 @@ $(function() {
   // options.fade - If the element should fade-in (default = true)
   // options.prepend - If the element should prepend
   //   all other messages (default = false)
-  function addMessageElement (el, options) {
+  function addActionElement(el, options) {
     var $el = $(el);
 
     // Setup default options
@@ -199,11 +203,11 @@ $(function() {
       $el.hide().fadeIn(FADE_TIME);
     }
     if (options.prepend) {
-      $messages.prepend($el);
+      $actions.prepend($el);
     } else {
-      $messages.append($el);
+      $actions.append($el);
     }
-    $messages[0].scrollTop = $messages[0].scrollHeight;
+    $actions[0].scrollTop = $actions[0].scrollHeight;
   }
 
   // Prevents input from having injected markup
@@ -232,9 +236,9 @@ $(function() {
   }
 
   // Gets the 'X is typing' messages of a user
-  function getTypingMessages (data) {
-    return $('.typing.message').filter(function (i) {
-      return $(this).data('userName') === data.user.name;
+  function getTypingActions(data) {
+    return $('.action.typing').filter(function (i) {
+      return $(this).data('user') === data.user.name;
     });
   }
 
@@ -262,11 +266,16 @@ $(function() {
     }
     // When the client hits ENTER on their keyboard
     if (event.which === 13) {
+
       if (user) {
-        sendMessage();
-        socket.emit('stopped-typing');
-        typing = false;
+        if (!event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+          socket.emit('stopped-typing');
+          typing = false;
+        }
       } else {
+        event.preventDefault();
         join();
       }
     }
@@ -283,10 +292,6 @@ $(function() {
     $currentInput.focus();
   });
 
-  // Focus input when clicking on the message input's border
-  $inputMessage.click(function () {
-    $inputMessage.focus();
-  });
 
   // Socket events
 
@@ -295,28 +300,44 @@ $(function() {
     user = data.user;
 
     connected = true;
-    // Display the welcome message
-    var message = "Welcome to silent disco / " + data.roomId + " – ";
+    var message = 'welcome to silent disco / ' + data.roomId;
     log(message, {
       prepend: true
     });
+
     addParticipantsMessage(data);
   });
 
   // Whenever the server emits 'new message', update the chat body
-  socket.on('message', function (data) {
-    addChatMessage(data);
+  socket.on('message', function(data) {
+    addChatAction({
+      user: data.user,
+      text: data.message,
+      message : true
+    });
   });
 
   // Whenever the server emits 'user joined', log it in the chat body
   socket.on('user-joined', function(data) {
-    log(data.user.name + ' joined');
+
+    console.log('user joined', data);
+
+    addChatAction({
+      user: data.user,
+      text: 'joined'
+    });
+
     addParticipantsMessage(data);
   });
 
   // Whenever the server emits 'user left', log it in the chat body
   socket.on('user-left', function (data) {
-    log(data.user.name + ' left');
+
+    addChatAction({
+      user: data.user,
+      text: 'left'
+    });
+
     addParticipantsMessage(data);
     removeChatTyping(data);
   });
