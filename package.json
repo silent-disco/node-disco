@@ -5,9 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha -r co-mocha -r test/expect -c --recursive test/spec",
-    "create-client": "lessc client/style.less > public/style.css && cp client/index.html public && cp client/main.js public",
+    "build:client": "npm run build:client:less && npm run build:client:copy && npm run build:client:browserify",
+    "build:client:less": "lessc client/style.less > public/style.css",
+    "build:client:copy": "cp client/index.html public",
+    "build:client:browserify": "browserify client/main.js > public/main.js && uglifyjs public/main.js -cm > public/main.min.js",
     "release": "npm run release:prepare && npm run release:exec && npm run release:publish",
-    "release:prepare": "git checkout release && git reset --hard master && npm run create-client && npm test",
+    "release:prepare": "git checkout release && git reset --hard master && npm run build:client && npm test",
     "release:exec": "git add public -f && git commit -m \"chore(project): add client + release\"",
     "release:publish": "git push openshift HEAD:master -f && git checkout master"
   },
@@ -35,18 +38,23 @@
   },
   "homepage": "https://github.com/silent-disco/node-disco",
   "dependencies": {
+    "browserify": "^9.0.8",
     "co": "^4.5.2",
     "co-redis": "^1.1.1",
+    "jquery": "^2.1.3",
     "koa-generic-session": "^1.8.0",
     "koa-static-cache": "^3.1.1",
     "koa.io": "0.0.3",
+    "notifyjs": "^1.2.5",
     "redis": "^0.12.1",
+    "socket.io-client": "^1.3.5",
     "uuid": "^2.0.1"
   },
   "devDependencies": {
     "chai": "^2.2.0",
     "co-mocha": "^1.1.0",
     "less": "^2.5.0",
-    "mocha": "^2.2.4"
+    "mocha": "^2.2.4",
+    "uglify-js": "^2.4.20"
   }
 }

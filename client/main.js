@@ -1,3 +1,6 @@
+var $ = require('jquery'),
+    io = require('socket.io-client');
+
 $(function() {
 
   /**
@@ -157,7 +160,7 @@ $(function() {
         .text(data.user.name)
         .css('color', getUserColor(data.user));
 
-    var $actionBodySpan = $('<span class="body">').text(data.text);
+    var $actionBodySpan = $('<span class="body">').append(parseText(data.text));
 
     var $actionDiv = $('<div class="action"/>')
       .data('user', data.user.name)
@@ -208,6 +211,10 @@ $(function() {
       $actions.append($el);
     }
     $actions[0].scrollTop = $actions[0].scrollHeight;
+  }
+
+  function parseText(text) {
+    return $('<span />').text(text);
   }
 
   function cleanInput(input) {

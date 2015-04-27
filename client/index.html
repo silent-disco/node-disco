@@ -29,8 +29,12 @@
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/main.js"></script>
+  <!-- use-min -->
+  <script>
+    var dist = localStorage && localStorage.debug ? '' : '.min';
+
+    document.write('<script src="/main' + dist + '.js"><\/script>');
+  </script>
+  <!-- /use-min -->
 </body>
 </html>
