@@ -1,10 +1,17 @@
 var $ = require('jquery'),
+    Notify = require('notifyjs'),
     io = require('socket.io-client');
 
 var extractUrls = require('./util/extract-urls');
 
 
 $(function() {
+
+  var hasFocus = false;
+
+  $(window).on('focus', function() { hasFocus = true; });
+
+  $(window).on('blur', function() { hasFocus = false; });
 
   /**
    * Extract the room from the users
@@ -57,7 +64,6 @@ $(function() {
   var $window = $(window);
   var $userNameInput = $('input.user-name');
   var $actions = $('.actions');
-  var $message = $('.message');
   var $inputMessage = $('.new-message textarea'); // Input message input box
 
   var $loginPage = $('.login-page'); // The login page
@@ -328,6 +334,29 @@ $(function() {
   });
 
   socket.on('message', function(data) {
+
+    function createNotification() {
+
+      var notification = new Notify(data.user.name + ' says', {
+        body: data.message,
+        notifyClick: function(e) {
+          window.focus();
+        },
+        timeout: 5
+      });
+
+      notification.show();
+    }
+
+    if (!hasFocus) {
+
+      if (Notify.needsPermission) {
+        Notify.requestPermission(createNotification);
+      } else {
+          createNotification();
+      }
+    }
+
     addChatAction({
       user: data.user,
       text: data.message,
