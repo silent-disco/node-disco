@@ -63,7 +63,7 @@ $(function() {
 
   // update room name in login page
   $loginPage.find('.room-name').text(roomId);
-  $loginPage.fadeIn();
+  $loginPage.addClass('active');
 
   $userNameInput.focus();
 
@@ -94,8 +94,8 @@ $(function() {
     // check if login via user name selection
     // is requested
     if (userName) {
-      $loginPage.fadeOut();
-      $roomPage.show();
+      $loginPage.removeClass('active');
+      $roomPage.addClass('active');
       $loginPage.off('click');
       $currentInput = $inputMessage.focus();
     }
@@ -113,8 +113,7 @@ $(function() {
     }
   }
 
-  // Sends a chat message
-  function sendMessage () {
+  function sendMessage() {
     var message = $inputMessage.val();
     // Prevent markup from being injected into the message
     message = cleanInput(message);
@@ -124,22 +123,25 @@ $(function() {
       addChatAction({
         user: user,
         text: message,
-        message : true
+        message: true
       });
 
       socket.emit('message', message);
     }
   }
 
-  // Log a message
+  /**
+   * Log a status message
+   */
   function log(message, options) {
     var $el = $('<li>').addClass('log').text(message);
     addActionElement($el, options);
   }
 
-  // Adds the visual chat message to the message list
+  /**
+   * Add an action in chat
+   */
   function addChatAction(data, options) {
-    // Don't fade the message in if there is an 'X was typing'
     var $typingMessages = getTypingActions(data);
     options = options || {};
 
@@ -165,15 +167,13 @@ $(function() {
     addActionElement($actionDiv, options);
   }
 
-  // Adds the visual chat typing message
   function addChatTyping(data) {
     data.typing = true;
     data.text = 'is typing';
     addChatAction(data);
   }
 
-  // Removes the visual chat typing message
-  function removeChatTyping (data) {
+  function removeChatTyping(data) {
     getTypingActions(data).fadeOut(function () {
       $(this).remove();
     });
@@ -210,12 +210,10 @@ $(function() {
     $actions[0].scrollTop = $actions[0].scrollHeight;
   }
 
-  // Prevents input from having injected markup
-  function cleanInput (input) {
-    return $('<div/>').text(input).text();
+  function cleanInput(input) {
+    return input.trim(); // $('<div/>').text(input).text();
   }
 
-  // Updates the typing event
   function updateTyping () {
     if (connected) {
       if (!typing) {
@@ -235,14 +233,12 @@ $(function() {
     }
   }
 
-  // Gets the 'X is typing' messages of a user
   function getTypingActions(data) {
     return $('.action.typing').filter(function (i) {
       return $(this).data('user') === data.user.name;
     });
   }
 
-  // Gets the color of a userName through our hash function
   function getUserColor(user) {
 
     var id = user.id;
@@ -257,7 +253,8 @@ $(function() {
     return COLORS[index];
   }
 
-  // Keyboard events
+
+  ////// keyboard integration ////////////////////////////
 
   $window.keydown(function (event) {
     // Auto-focus the current input when a key is typed
@@ -285,17 +282,16 @@ $(function() {
     updateTyping();
   });
 
-  // Click events
 
-  // Focus input when clicking anywhere on login page
+  ////// click integration ////////////////////////////
+
   $loginPage.click(function () {
     $currentInput.focus();
   });
 
 
-  // Socket events
+  ////// socket events ////////////////////////////
 
-  // Whenever the server emits 'login', log the login message
   socket.on('joined', function(data) {
     user = data.user;
 
@@ -308,7 +304,6 @@ $(function() {
     addParticipantsMessage(data);
   });
 
-  // Whenever the server emits 'new message', update the chat body
   socket.on('message', function(data) {
     addChatAction({
       user: data.user,
@@ -317,10 +312,7 @@ $(function() {
     });
   });
 
-  // Whenever the server emits 'user joined', log it in the chat body
   socket.on('user-joined', function(data) {
-
-    console.log('user joined', data);
 
     addChatAction({
       user: data.user,
@@ -330,7 +322,6 @@ $(function() {
     addParticipantsMessage(data);
   });
 
-  // Whenever the server emits 'user left', log it in the chat body
   socket.on('user-left', function (data) {
 
     addChatAction({
@@ -342,12 +333,10 @@ $(function() {
     removeChatTyping(data);
   });
 
-  // Whenever the server emits 'typing', show the typing message
   socket.on('user-typing', function (data) {
     addChatTyping(data);
   });
 
-  // Whenever the server emits 'stop typing', kill the typing message
   socket.on('user-stopped-typing', function (data) {
     removeChatTyping(data);
   });
