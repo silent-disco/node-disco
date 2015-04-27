@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha -r co-mocha -r test/expect -c --recursive test/spec",
-    "build-client": "lessc client/style.less > public/style.css && cp client/index.html public && cp client/main.js public"
+    "create-client": "lessc client/style.less > public/style.css && cp client/index.html public && cp client/main.js public",
+    "release": "npm run release:prepare && npm run release:exec && npm run release:publish",
+    "release:prepare": "git checkout release && git reset --hard master && npm run create-client && npm test",
+    "release:exec": "git add public -f && git commit -m \"chore(project): add client + release\"",
+    "release:publish": "git push openshift HEAD:master -f && git checkout master"
   },
   "repository": {
     "type": "git",
