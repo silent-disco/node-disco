@@ -7,7 +7,7 @@ var URL_REGEX = new RegExp(
     // server port number (optional)
     '(?::\\d{2,5})?' +
     // resource path (optional)
-    '(?:/?\\S*)?' +
+    '(?:/?[^\\s"]*)?' +
   ')', 'gi'
 );
 
