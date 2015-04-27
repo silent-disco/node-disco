@@ -1,7 +1,7 @@
 var uuid = require('uuid');
 
 var sanitize = function(str) {
-  return str.replace(/[^A-z0-9_-]+/g, '');
+  return str; //str.replace(/[^A-z0-9_-]+/g, '');
 };
 
 function now() {
