@@ -53,6 +53,7 @@ $(function() {
   var $window = $(window);
   var $userNameInput = $('input.user-name');
   var $actions = $('.actions');
+  var $message = $('.message');
   var $inputMessage = $('.new-message textarea'); // Input message input box
 
   var $loginPage = $('.login-page'); // The login page
@@ -292,10 +293,9 @@ $(function() {
 
   ////// click integration ////////////////////////////
 
-  $loginPage.click(function () {
+  $loginPage.click(function() {
     $currentInput.focus();
   });
-
 
   ////// socket events ////////////////////////////
 

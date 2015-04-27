@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha -r co-mocha -r test/expect -c --recursive test/spec",
+    "build:client:watchify": "watchify client/main.js -o public/main.js -v",
     "build:client": "npm run build:client:less && npm run build:client:copy && npm run build:client:browserify",
     "build:client:less": "lessc client/style.less > public/style.css",
     "build:client:copy": "cp client/index.html public",
@@ -55,6 +56,7 @@
     "co-mocha": "^1.1.0",
     "less": "^2.5.0",
     "mocha": "^2.2.4",
-    "uglify-js": "^2.4.20"
+    "uglify-js": "^2.4.20",
+    "watchify": "^3.2.0"
   }
 }

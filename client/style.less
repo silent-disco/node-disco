@@ -34,7 +34,7 @@ ul {
 
   > * {
     position: absolute;
-
+    z-index: 1;
     height: 100%;
     width: 100%;
 
@@ -44,6 +44,7 @@ ul {
 
   > .active {
     opacity: 1.0;
+    z-index: 100;
   }
 }
 
@@ -52,7 +53,7 @@ ul {
 /* login page */
 
 .login-page {
-
+  z-index: 0;
   background: black;
 
   .form {
@@ -93,7 +94,6 @@ ul {
 /* room page */
 
 .room-page {
-
   .chat {
     height: 100%;
     padding-bottom: 60px;
@@ -135,6 +135,16 @@ ul {
     overflow: hidden;
     float: left;
     margin-right: 5px;
+
+    .name {
+      -webkit-user-select: none;  /* Chrome all / Safari all */
+      -moz-user-select: none;     /* Firefox all */
+      -ms-user-select: none;      /* IE 10+ */
+
+      /* No support for these yet, use at own risk */
+      -o-user-select: none;
+      user-select: none;
+    }
   }
 
   .new-message {
