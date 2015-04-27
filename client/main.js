@@ -1,6 +1,9 @@
 var $ = require('jquery'),
     io = require('socket.io-client');
 
+var extractUrls = require('./util/extract-urls');
+
+
 $(function() {
 
   /**
@@ -36,6 +39,7 @@ $(function() {
 
     return io(split.join(':'));
   }
+
 
   var roomId = roomFromUrl();
   var socket = createSocket();
@@ -215,7 +219,19 @@ $(function() {
   }
 
   function parseText(text) {
-    return $('<span />').text(text);
+
+    var parts = extractUrls(text);
+
+    return parts.map(function(part) {
+      if (part.url) {
+        return $('<a />').attr({
+          href: part.url,
+          target: '_blank'
+        }).text(part.url);
+      } else {
+        return $('<span />').text(part.text);
+      }
+    });
   }
 
   function cleanInput(input) {
