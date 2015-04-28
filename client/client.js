@@ -1,6 +1,8 @@
 var $ = require('jquery'),
     io = require('socket.io-client');
 
+var Config = require('./config');
+
 var Notifications = require('./notifications');
 
 var extractUrls = require('./util/extract-urls');
@@ -8,7 +10,9 @@ var extractUrls = require('./util/extract-urls');
 
 $(function() {
 
-  var notifications = new Notifications().bindTo($('.room-page .toggle-notifications'));
+  var config = new Config('__disco_');
+
+  var notifications = new Notifications(config).bindTo($('.room-page .toggle-notifications'));
 
   /**
    * Extract the room from the users

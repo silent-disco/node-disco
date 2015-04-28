@@ -4,11 +4,13 @@ var Notify = require('notifyjs');
 
 var $window = $(window);
 
+var NOTIFICATIONS_ENABLED = 'notificationsEnabled';
 
-function Notifications() {
+
+function Notifications(config) {
 
   var windowFocus = false;
-  var active = false;
+  var active = config.get(NOTIFICATIONS_ENABLED, false);
 
   var $el;
 
@@ -19,6 +21,8 @@ function Notifications() {
   /* switch notifications on or off */
   this.setActive = function(_active) {
     active = _active;
+
+    config.set(NOTIFICATIONS_ENABLED, _active);
 
     if (active && Notify.needsPermission) {
       Notify.requestPermission(createNotification);
@@ -55,6 +59,8 @@ function Notifications() {
     $el.on('click', function() {
       self.setActive(!$el.hasClass('active'));
     });
+
+    this.setActive(active);
 
     return this;
   };
