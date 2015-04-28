@@ -107,9 +107,21 @@ ul {
 
   .log {
     color: gray;
-    font-size: 14px;
-    margin: 5px;
-    text-align: center;
+    margin: 10px 0;
+  }
+
+  .log:before {
+    content: '#';
+    margin-right: 5px;
+    display: inline-block;
+  }
+
+  .log:first-child {
+    margin-top: 0;
+  }
+
+  .log + .log {
+    margin-top: -10px;
   }
 
   .actions {

@@ -197,7 +197,6 @@ $(function() {
   // Adds a message element to the messages and scrolls to the bottom
   // el - The element to add as a message
   // options.fade - If the element should fade-in (default = true)
-  // options.prepend - If the element should prepend
   //   all other messages (default = false)
   function addActionElement(el, options) {
     var $el = $(el);
@@ -209,19 +208,14 @@ $(function() {
     if (typeof options.fade === 'undefined') {
       options.fade = true;
     }
-    if (typeof options.prepend === 'undefined') {
-      options.prepend = false;
-    }
 
     // Apply options
     if (options.fade) {
       $el.hide().fadeIn(FADE_TIME);
     }
-    if (options.prepend) {
-      $actions.prepend($el);
-    } else {
-      $actions.append($el);
-    }
+
+    $actions.append($el);
+
     $actions[0].scrollTop = $actions[0].scrollHeight;
   }
 
@@ -325,11 +319,12 @@ $(function() {
   socket.on('joined', function(data) {
     user = data.user;
 
-    connected = true;
-    var message = 'welcome to silent disco / ' + data.roomId;
-    log(message, {
-      prepend: true
-    });
+    if (!connected) {
+      log('welcome to silent disco / ' + data.roomId);
+      connected = true;
+    } else {
+      log('connection restored');
+    }
 
     addParticipantsMessage(data);
   });
@@ -375,5 +370,15 @@ $(function() {
 
   socket.on('user-stopped-typing', function (data) {
     removeChatTyping(data);
+  });
+
+  socket.on('disconnect', function() {
+    log('disconnected from server, trying to reconnect ...');
+  });
+
+  socket.on('reconnect', function() {
+    if (user) {
+      join(user);
+    }
   });
 });
