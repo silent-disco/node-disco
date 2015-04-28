@@ -14,6 +14,11 @@
 <body class="pages">
 
   <div class="room-page">
+
+    <div class="page-menu">
+      <span class="entry icon-notifications toggle-notifications"></span>
+    </div>
+
     <div class="chat">
       <ul class="actions"></ul>
     </div>
@@ -33,7 +38,7 @@
   <script>
     var dist = localStorage && localStorage.debug ? '' : '.min';
 
-    document.write('<script src="/main' + dist + '.js"><\/script>');
+    document.write('<script src="/client' + dist + '.js"><\/script>');
   </script>
   <!-- /use-min -->
 </body>
