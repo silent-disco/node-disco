@@ -34,8 +34,8 @@ function RoomsModel(client) {
   };
 
   // SET{STRING} rooms = 1 2 3 4 5 6
-  this.getAll = function() {
-    return client.smembers('rooms');
+  this.getAll = function*() {
+    return yield client.smembers('rooms');
   };
 
 

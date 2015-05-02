@@ -61,7 +61,7 @@ describe('api/rooms/model', function() {
       yield rooms.remove('aaa');
 
       // then
-      expect(rooms.getAll()).to.be.empty;
+      expect(yield rooms.getAll()).to.be.empty;
     });
 
 
