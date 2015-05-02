@@ -1,4 +1,9 @@
+var forEach = require('foreach');
+
 var uuid = require('uuid');
+
+var Promise = require('bluebird');
+
 
 var sanitize = function(str) {
   return str; //str.replace(/[^A-z0-9_-]+/g, '');
@@ -53,7 +58,7 @@ function RoomsEndpoint(rooms, app) {
    *
    * @yield {Room}
    */
-  function* leave(session) {
+  function* leave(session, quit) {
 
     try {
       var user = session.user,
@@ -67,10 +72,12 @@ function RoomsEndpoint(rooms, app) {
 
       var activeUsers = yield room.members.count();
 
-      broadcast(session, 'user-left', {
-        user: user,
-        activeUsers: activeUsers
-      });
+      if (!quit) {
+        broadcast(session, 'user-left', {
+          user: user,
+          activeUsers: activeUsers
+        });
+      }
     } catch (e) {
       notifyError(session, e);
     }
@@ -81,7 +88,7 @@ function RoomsEndpoint(rooms, app) {
   app.io.use(function*(next) {
 
     // on connect
-    console.log('connection established');
+    console.log('[rooms] connection established');
 
     yield* next;
 
@@ -90,7 +97,7 @@ function RoomsEndpoint(rooms, app) {
       yield leave(this);
     }
 
-    console.log('connection closed');
+    console.log('[rooms] connection closed');
   });
 
 
@@ -112,7 +119,7 @@ function RoomsEndpoint(rooms, app) {
       yield leave(this);
     }
 
-    console.log('[%s] user %s joins room', roomId, userName);
+    console.log('[rooms#%s] user %s joins room', roomId, userName);
 
     roomId = sanitize(roomId);
     userName = sanitize(userName);
@@ -160,7 +167,7 @@ function RoomsEndpoint(rooms, app) {
   // send a message
   app.io.route('message', function*(next, message) {
 
-    console.log('[%s] new message by %s', this.roomId, this.user.name);
+    console.log('[rooms#%s] new message by %s', this.roomId, this.user.name);
 
     broadcast(this, 'message', {
       user: this.user,
@@ -172,7 +179,7 @@ function RoomsEndpoint(rooms, app) {
   // indicate typing
   app.io.route('typing', function*() {
 
-    console.log('[%s] %s is typing', this.roomId, this.user.name);
+    console.log('[rooms#%s] %s is typing', this.roomId, this.user.name);
 
     broadcast(this, 'user-typing', {
       user: this.user
@@ -183,7 +190,7 @@ function RoomsEndpoint(rooms, app) {
   // indicate stop typing
   app.io.route('stopped-typing', function*() {
 
-    console.log('[%s] %s stopped typing', this.roomId, this.user.name);
+    console.log('[rooms#%s] %s stopped typing', this.roomId, this.user.name);
 
     broadcast(this, 'user-stopped-typing', {
       user: this.user
@@ -195,7 +202,7 @@ function RoomsEndpoint(rooms, app) {
 
     var roomId = this.roomId;
 
-    console.log('[%s] %s starts song', roomId, this.user.name);
+    console.log('[rooms#%s] %s starts song', roomId, this.user.name);
 
     try {
       // get + initialize room
@@ -234,7 +241,7 @@ function RoomsEndpoint(rooms, app) {
 
     var roomId = this.roomId;
 
-    console.log('[%s] %s adds song', roomId, this.user.name);
+    console.log('[rooms#%s] %s adds song', roomId, this.user.name);
 
     try {
       // retrieve room, creating it on the fly
@@ -260,7 +267,7 @@ function RoomsEndpoint(rooms, app) {
 
     var roomId = this.roomId;
 
-    console.log('[%s] %s removes song', roomId, this.user.name);
+    console.log('[rooms#%s] %s removes song', roomId, this.user.name);
 
     try {
       // retrieve room, don't care if it exists or not
@@ -287,7 +294,7 @@ function RoomsEndpoint(rooms, app) {
 
     var roomId = this.roomId;
 
-    console.log('[%s] %s moves song', roomId, this.user.name);
+    console.log('[rooms#%s] %s moves song', roomId, this.user.name);
 
     try {
       // retrieve room, creating it on the fly
@@ -312,6 +319,19 @@ function RoomsEndpoint(rooms, app) {
     } catch (e) {
       notifyError(this, e);
     }
+  });
+
+
+  app.lifecycle.on('shutdown', function*() {
+    var sockets = app.io.sockets;
+
+    console.log('[rooms] closing client connections ...');
+
+    forEach(sockets.connected, function(socket) {
+      socket.ondisconnect();
+    });
+
+    return Promise.delay(2500);
   });
 }
 
