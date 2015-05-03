@@ -310,6 +310,12 @@ $(function() {
 
   ////// click integration ////////////////////////////
 
+  $roomPage.click(function(event) {
+    if ($(event.target).is('.actions, .action')) {
+      $inputMessage.focus();
+    }
+  });
+
   $loginPage.click(function() {
     $currentInput.focus();
   });
