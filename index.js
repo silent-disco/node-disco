@@ -3,11 +3,7 @@ var koa = require('koa.io');
 var path = require('path');
 var fs = require('fs');
 
-var co = require('co');
-
-var db = require('./api/db'),
-    RoomsModel = require('./api/rooms/model'),
-    RoomsEndpoint = require('./api/rooms/endpoint');
+var db = require('./api/db');
 
 var app = koa();
 
@@ -27,7 +23,11 @@ if (process.env.NODE_ENV === 'openshift') {
   redisPort = process.env.OPENSHIFT_REDIS_PORT;
 }
 
-// Routing
+var dbClient = db.createClient(redisPort, redisHost, { auth_pass: redisAuth });
+
+
+// config
+
 app.use(staticCache(path.join(__dirname, 'public')));
 
 app.use(function*() {
@@ -40,35 +40,18 @@ app.listen(port, host, function() {
 });
 
 
-// attach generator aware life-cycle component to app
-var Emitter = require('co-emitter');
+// components
 
-app.lifecycle = new Emitter();
+var Emitter = require('co-emitter'),
+    RoomsModel = require('./api/rooms/model'),
+    RoomsEndpoint = require('./api/rooms/endpoint'),
+    LifeCycle = require('./api/life-cycle');
 
 
-var dbClient = db.createClient(redisPort, redisHost, { auth_pass: redisAuth });
+var events = new Emitter();
 
 var rooms = new RoomsModel(dbClient);
 
-RoomsEndpoint.configure(rooms, app);
+LifeCycle.configure(events);
 
-
-function shutdown() {
-  console.log('\033[2K\033[4D[node-disco] server shutting down');
-
-  co(function*() {
-    yield app.lifecycle.emit('shutdown');
-
-    console.log('[node-disco] over and out.');
-
-    process.exit(0);
-  });
-}
-
-// start reading from stdin so we don't exit.
-process.stdin.resume();
-
-
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
-process.on('SIGHUP', shutdown);
+RoomsEndpoint.configure(events, rooms, app);

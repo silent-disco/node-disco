@@ -17,10 +17,11 @@ function now() {
 /**
  * A rooms end point
  *
+ * @param {Emitter} events
  * @param {RoomsModel} rooms
  * @param {Koa} app
  */
-function RoomsEndpoint(rooms, app) {
+function RoomsEndpoint(events, rooms, app) {
 
   function emit(session, message, data) {
     session.emit(message, data);
@@ -322,7 +323,7 @@ function RoomsEndpoint(rooms, app) {
   });
 
 
-  app.lifecycle.on('shutdown', function*() {
+  events.on('shutdown', function*() {
     var sockets = app.io.sockets;
 
     console.log('[rooms] closing client connections ...');
@@ -336,8 +337,8 @@ function RoomsEndpoint(rooms, app) {
 }
 
 
-RoomsEndpoint.configure = function(rooms, app) {
-  return new RoomsEndpoint(rooms, app);
+RoomsEndpoint.configure = function(events, rooms, app) {
+  return new RoomsEndpoint(events, rooms, app);
 };
 
 module.exports = RoomsEndpoint;
