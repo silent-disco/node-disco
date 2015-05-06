@@ -26,7 +26,7 @@ var dest = 'public';
 
 // add custom browserify options here
 var browserifyOptions = {
-  entries: ['./client/client.js'],
+  entries: ['./client/index.js'],
   debug: true
 };
 

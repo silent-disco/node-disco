@@ -13,33 +13,11 @@
 </head>
 <body class="pages">
 
-  <div class="room-page">
-
-    <div class="page-menu">
-      <span class="entry icon-notifications toggle-notifications"
-            title="toggle desktop notifications"></span>
-    </div>
-
-    <div class="chat">
-      <ul class="actions"></ul>
-    </div>
-    <div class="new-message">
-      <textarea placeholder="Type here..."></textarea>
-    </div>
-  </div>
-
-  <div class="login-page">
-    <div class="form">
-      <h3 class="title">Join <span class="room-name"></span>. What's your nickname?</h3>
-      <input class="user-name" type="text" maxlength="14" />
-    </div>
-  </div>
-
   <!-- use-min -->
   <script>
     var dist = localStorage && localStorage.debug ? '' : '.min';
 
-    document.write('<script src="/client' + dist + '.js"><\/script>');
+    document.write('<script src="/index' + dist + '.js"><\/script>');
   </script>
   <!-- /use-min -->
 </body>
