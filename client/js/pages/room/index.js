@@ -71,9 +71,9 @@ function RoomPage(app) {
   app.on('connected', function(data, reconnect) {
 
     if (reconnect) {
-      this.log('welcome to silent disco / ' + data.roomId);
-    } else {
       this.log('connection restored');
+    } else {
+      this.log('welcome to silent disco / ' + data.roomId);
     }
 
     this.printParticipants(data);
