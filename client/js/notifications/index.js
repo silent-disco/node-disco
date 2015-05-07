@@ -1,5 +1,3 @@
-var $ = require('jquery');
-
 var Notify = require('notifyjs');
 
 var $window = $(window);
@@ -51,6 +49,8 @@ function Notifications(config) {
   };
 
   this.bindTo = function(element) {
+
+    throw new Error('implement me');
 
     $el = $(element);
 

@@ -1,9 +1,8 @@
-var $ = require('jquery');
+var domReady = require('domready');
 
 var Delegator = require('dom-delegator');
 
-var Config = require('./config'),
-    Notifications = require('./notifications');
+var Config = require('./config');
 
 
 var App = require('./js/app');
@@ -13,11 +12,8 @@ var App = require('./js/app');
 Delegator();
 
 
-$(function() {
-
+domReady(function() {
   var config = new Config('__disco_');
-
-  var notifications = new Notifications(config).bindTo($('.room-page .toggle-notifications'));
 
   var app = new App(config);
 
