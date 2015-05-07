@@ -12,9 +12,11 @@ var gulp = require('gulp'),
     watchify = require('watchify'),
     browserify = require('browserify'),
     del = require('del'),
+    errorify = require('errorify'),
     source = require('vinyl-source-stream'),
     buffer = require('vinyl-buffer'),
     gutil = require('gulp-util'),
+    runSequence = require('run-sequence'),
     livereload = require('gulp-livereload'),
     nodemon = require('gulp-nodemon'),
     assign = require('lodash/object/assign');
@@ -33,34 +35,39 @@ var browserifyOptions = {
 
 function bundle(options) {
 
-  var bundler;
-
-  var bundleOptions;
+  var bro,
+      bundler,
+      bundleOptions;
 
   function build() {
     return bundler
-             .bundle()
-               .pipe(plumber())
-               .pipe(source('client.js'))
-               .pipe(buffer())
-               .pipe(gulp.dest(dest))
-               .pipe(livereload())
-               .pipe(rename({ extname: '.min.js' }))
-               .pipe(uglify())
-               .pipe(gulp.dest(dest))
-               .pipe(livereload());
+            .bundle()
+            .pipe(plumber())
+            .pipe(source('client.js'))
+            .pipe(buffer())
+            .pipe(gulp.dest(dest))
+            .pipe(livereload())
+            .pipe(rename({ extname: '.min.js' }))
+            .pipe(uglify())
+            .pipe(gulp.dest(dest))
+            .pipe(livereload());
   }
 
   if (options && options.watch) {
 
     bundleOptions = assign({}, watchify.args, browserifyOptions);
 
-    bundler = watchify(browserify(bundleOptions));
+    bro = browserify(bundleOptions);
+    bro.plugin(errorify);
+
+    bundler = watchify(bro);
 
     bundler.on('update', build);
     bundler.on('log', gutil.log);
   } else {
-    bundler = browserify(browserifyOptions);
+    bro = browserify(browserifyOptions);
+    bro.plugin(errorify);
+    bundler = bro;
   }
 
   bundler.build = build;
@@ -76,9 +83,9 @@ function copy(src, dir) {
 
 function lint(src) {
   return gulp.src(src)
-               .pipe(plumber())
-               .pipe(jshint('.jshintrc'))
-               .pipe(jshint.reporter(stylish));
+             .pipe(plumber())
+             .pipe(jshint('.jshintrc'))
+             .pipe(jshint.reporter(stylish));
 }
 
 gulp.task('client:build:watch', ['client:lint'], function() {
@@ -142,13 +149,16 @@ gulp.task('nodemon', function(cb) {
     }
     called = true;
     console.log('Starting...');
-  })
-  .on('change', [ 'server:lint' ]);
+  });
 });
 
 
 gulp.task('default', ['build']);
 
-gulp.task('build', [ 'client:clean', 'client:copy', 'client:less', 'client:build' ]);
+gulp.task('build', function() {
+  runSequence('client:clean', 'client:copy', 'client:less', 'client:build', 'client:size');
+});
 
-gulp.task('serve', [ 'client:copy', 'client:less', 'client:build:watch', 'server' ]);
+gulp.task('serve', function() {
+  runSequence( 'client:copy', 'client:less', 'client:build:watch', 'server');
+});
