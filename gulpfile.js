@@ -9,6 +9,7 @@ var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
     stylish = require('jshint-stylish'),
     less = require('gulp-less'),
+    errorify = require('errorify'),
     watchify = require('watchify'),
     browserify = require('browserify'),
     del = require('del'),
@@ -61,6 +62,8 @@ function bundle(options) {
     bro.plugin(errorify);
 
     bundler = watchify(bro);
+
+    bundler.plugin(errorify);
 
     bundler.on('update', build);
     bundler.on('log', gutil.log);

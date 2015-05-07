@@ -35,7 +35,7 @@ module.exports = Page;
 
 Page.prototype.renderPage = function(opts, children) {
 
-  var pageSelector = '.' + this.name + '-page';
+  var pageSelector = '.page.' + this.name + '-page';
 
   if (this.active) {
     pageSelector += '.active';

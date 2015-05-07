@@ -25,6 +25,10 @@ html, body {
   padding: 0;
 }
 
+body {
+  width: 100%;
+}
+
 ul {
   list-style: none;
   word-wrap: break-word;
@@ -32,23 +36,16 @@ ul {
 
 /* pages */
 
-.pages {
+.page {
+  position: absolute;
+  z-index: 1;
   height: 100%;
-  margin: 0;
-  padding: 0;
   width: 100%;
 
-  > * {
-    position: absolute;
-    z-index: 1;
-    height: 100%;
-    width: 100%;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
 
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-  }
-
-  > .active {
+  &.active {
     opacity: 1.0;
     z-index: 100;
   }
@@ -59,7 +56,6 @@ ul {
 /* login page */
 
 .login-page {
-  z-index: 0;
   background: black;
 
   form {
@@ -190,4 +186,19 @@ ul {
       overflow-y: auto;
     }
   }
+}
+
+
+/**
+ * error handling
+ */
+body > .errorify {
+  color: red;
+  font-family: 'Consolas', monospace;
+
+  margin: 0;
+  padding: 20px;
+
+  width: 100%;
+  white-space: pre-wrap;
 }
