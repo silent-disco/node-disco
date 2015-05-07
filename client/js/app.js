@@ -57,7 +57,7 @@ function App() {
 
   this.socket.on('reconnect', function() {
     if (this.user) {
-      this.joinRoom(user);
+      this.joinRoom(this.user);
     }
   }.bind(this));
 }
