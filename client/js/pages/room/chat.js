@@ -71,10 +71,6 @@ Chat.prototype.addAction = function(action, options) {
   this.changed();
 };
 
-Chat.prototype.toggleNotifications = function(event) {
-  console.log('toggle desktop notifications', event);
-};
-
 Chat.prototype.oninput = function(event) {
 
   if (event.charCode === 13 && !event.shiftKey) {
@@ -116,13 +112,6 @@ Chat.prototype.oninput = function(event) {
 Chat.prototype.render = function() {
 
   return h('#chat', [
-    h('.page-menu', [
-      h('a.icon-notifications', {
-        href: '#',
-        title: 'toggle desktop notifications',
-        'ev-click': this.toggleNotifications.bind(this)
-      })
-    ]),
     h('.chat', [
       h('ul.actions', [
         renderActions(this.actions)

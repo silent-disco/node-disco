@@ -1,11 +1,17 @@
 var inherits = require('inherits');
 
+var h = require('virtual-dom/h');
+
 var Page = require('../../base/page');
+
+var Notifications = require('../../notifications');
 
 var Chat = require('./chat');
 
 function RoomPage(app) {
   Page.call(this, 'room', app);
+
+  var notifications = this.notifications = new Notifications(app);
 
   var chat = this.chat = new Chat(this);
 
@@ -22,14 +28,12 @@ function RoomPage(app) {
     });
   }.bind(this));
 
+  app.on('user-message', function(data) {
 
-    /*notifications.add({
-      title: data.user.name + ' says',
+    notifications.add({
+      title: data.user.name + ' wrote',
       message: data.message
     });
-    */
-
-  app.on('user-message', function(data) {
 
     this.addAction({
       user: data.user,
@@ -40,9 +44,27 @@ function RoomPage(app) {
 
   app.on('user-joined', function(data) {
 
+    notifications.add({
+      title: data.user.name + ' joined',
+    });
+
     this.addAction({
       user: data.user,
       text: 'joined'
+    });
+
+    this.printParticipants(data);
+  }.bind(this));
+
+  app.on('user-left', function(data) {
+
+    notifications.add({
+      title: data.user.name + ' left'
+    });
+
+    this.addAction({
+      user: data.user,
+      text: 'left'
     });
 
     this.printParticipants(data);
@@ -56,16 +78,6 @@ function RoomPage(app) {
     console.log('user stopped typing', data);
 
     this.chat.removeTyping(data.user);
-  }.bind(this));
-
-  app.on('user-left', function(data) {
-
-    this.addAction({
-      user: data.user,
-      text: 'left'
-    });
-
-    this.printParticipants(data);
   }.bind(this));
 
   app.on('connected', function(data, reconnect) {
@@ -115,9 +127,24 @@ RoomPage.prototype.printParticipants = function(data) {
   this.log(text);
 };
 
+RoomPage.prototype.toggleNotifications = function() {
+  this.notifications.toggle();
+
+  this.changed();
+};
 
 RoomPage.prototype.render = function() {
+
+  var notificationsActive = this.notifications.isActive() ? '.active' : '';
+
   return this.renderPage([
+    h('.page-menu', [
+      h('a.entry.icon-notifications' + notificationsActive, {
+        href: '#',
+        title: 'toggle desktop notifications',
+        'ev-click': this.toggleNotifications.bind(this)
+      })
+    ]),
     this.chat.render()
   ]);
 };

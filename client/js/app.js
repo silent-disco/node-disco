@@ -8,11 +8,13 @@ var LoginPage = require('./pages/login'),
     RoomPage = require('./pages/room');
 
 
-function App() {
+function App(config) {
 
   Emitter.call(this);
 
   // environment init
+  this.config = config;
+
   this.roomName = roomFromUrl();
   this.socket = createSocket();
 

@@ -1,33 +1,27 @@
 var Notify = require('notifyjs');
 
-var $window = $(window);
-
 var NOTIFICATIONS_ENABLED = 'notificationsEnabled';
 
 
-function Notifications(config) {
+function Notifications(app) {
+
+  var config = app.config;
 
   var windowFocus = false;
   var active = config.get(NOTIFICATIONS_ENABLED, false);
 
-  var $el;
+  window.addEventListener('focus', function() { windowFocus = true; });
 
-  $window.on('focus', function() { windowFocus = true; });
-
-  $window.on('blur', function() { windowFocus = false; });
+  window.addEventListener('blur', function() { windowFocus = false; });
 
   /* switch notifications on or off */
-  this.setActive = function(_active) {
-    active = _active;
+  this.toggle = function() {
+    active = !active;
 
-    config.set(NOTIFICATIONS_ENABLED, _active);
+    config.set(NOTIFICATIONS_ENABLED, active);
 
     if (active && Notify.needsPermission) {
       Notify.requestPermission(createNotification);
-    }
-
-    if ($el) {
-      $el[active ? 'addClass' : 'removeClass']('active');
     }
   };
 
@@ -38,9 +32,9 @@ function Notifications(config) {
     }
 
     var notification = new Notify(data.title, {
-      body: data.message,
+      body: data.message || '',
       notifyClick: function(e) {
-        $window.focus();
+        window.focus();
       },
       timeout: 5
     });
@@ -48,21 +42,8 @@ function Notifications(config) {
     notification.show();
   };
 
-  this.bindTo = function(element) {
-
-    throw new Error('implement me');
-
-    $el = $(element);
-
-    var self = this;
-
-    $el.on('click', function() {
-      self.setActive(!$el.hasClass('active'));
-    });
-
-    this.setActive(active);
-
-    return this;
+  this.isActive = function() {
+    return active;
   };
 }
 
