@@ -2,8 +2,7 @@ var domReady = require('domready');
 
 var Delegator = require('dom-delegator');
 
-var Config = require('./config');
-
+var Config = require('./js/config');
 
 var App = require('./js/app');
 

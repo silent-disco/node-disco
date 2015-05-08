@@ -7,6 +7,10 @@ var inherits = require('inherits');
 var LoginPage = require('./pages/login'),
     RoomPage = require('./pages/room');
 
+var SOCKET_DISCONNECTED = 'disconnected',
+    SOCKET_RECONNECTING = 'reconnecting',
+    SOCKET_CONNECTED = 'connected';
+
 
 function App(config) {
 
@@ -18,6 +22,11 @@ function App(config) {
   this.roomName = roomFromUrl();
   this.socket = createSocket();
 
+  // disconnected
+  // connected
+  // reconnecting
+  this.socketState = 'disconnected';
+
   // pages
   this.loginPage = new LoginPage(this);
   this.roomPage = new RoomPage(this);
@@ -25,12 +34,13 @@ function App(config) {
   window.addEventListener('popstate', this.stateChanged.bind(this));
 
   this.socket.on('joined', function joined(data) {
-    var reconnect = !!this.connected;
+    var reconnect = this.socketState === SOCKET_RECONNECTING;
 
     this.user = data.user;
-    this.connected = true;
 
     this.emit('connected', data, reconnect);
+
+    this.socketState = SOCKET_CONNECTED;
   }.bind(this));
 
   this.socket.on('message', function(data) {
@@ -45,16 +55,10 @@ function App(config) {
     this.emit('user-left', data);
   }.bind(this));
 
-  this.socket.on('user-typing', function(data) {
-    this.emit('user-typing', data);
-  }.bind(this));
-
-  this.socket.on('user-stopped-typing', function (data) {
-    this.emit('user-stopped-typing', data);
-  }.bind(this));
-
   this.socket.on('disconnect', function() {
     this.emit('disconnect');
+
+    this.socketState = SOCKET_RECONNECTING;
   }.bind(this));
 
   this.socket.on('reconnect', function() {
@@ -96,14 +100,6 @@ App.prototype.joinRoom = function(user) {
   this.socket.emit('join', this.roomName, this.user.name);
 
   this.roomPage.activate();
-};
-
-App.prototype.startTyping = function() {
-  this.socket.emit('typing');
-};
-
-App.prototype.stopTyping = function() {
-  this.socket.emit('stopped-typing');
 };
 
 App.prototype.run = function() {

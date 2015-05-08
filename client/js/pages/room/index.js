@@ -2,6 +2,8 @@ var inherits = require('inherits');
 
 var h = require('virtual-dom/h');
 
+var on = require('../../util/on');
+
 var Page = require('../../base/page');
 
 var Notifications = require('../../notifications');
@@ -11,26 +13,21 @@ var Chat = require('./chat');
 function RoomPage(app) {
   Page.call(this, 'room', app);
 
-  var notifications = this.notifications = new Notifications(app);
+  this.notifications = new Notifications(app);
 
-  var chat = this.chat = new Chat(this);
+  this.chat = new Chat(this);
 
-  chat.on('start-typing', app.startTyping.bind(app));
-  chat.on('stop-typing', app.stopTyping.bind(app));
+  this.socket = app.socket;
 
-  chat.on('submit', function(text) {
-    app.sendMessage(text);
-
-    this.addAction({
-      user: app.user,
-      text: text,
-      message: true
-    });
-  }.bind(this));
+  on(this.chat, {
+    'start-typing': this.startTyping,
+    'stop-typing': this.stopTyping,
+    'submit': this.sendMessage
+  }, this);
 
   app.on('user-message', function(data) {
 
-    notifications.add({
+    this.notifications.add({
       title: data.user.name + ' wrote',
       message: data.message
     });
@@ -44,7 +41,7 @@ function RoomPage(app) {
 
   app.on('user-joined', function(data) {
 
-    notifications.add({
+    this.notifications.add({
       title: data.user.name + ' joined',
     });
 
@@ -58,7 +55,7 @@ function RoomPage(app) {
 
   app.on('user-left', function(data) {
 
-    notifications.add({
+    this.notifications.add({
       title: data.user.name + ' left'
     });
 
@@ -70,15 +67,18 @@ function RoomPage(app) {
     this.printParticipants(data);
   }.bind(this));
 
-  app.on('user-typing', function(data) {
-    this.chat.addTyping(data.user);
-  }.bind(this));
 
-  app.on('user-stopped-typing', function(data) {
-    console.log('user stopped typing', data);
+  // user typing information
+  on(this.socket, {
+    'user-typing': function(data) {
+      this.chat.addTyping(data.user);
+    },
 
-    this.chat.removeTyping(data.user);
-  }.bind(this));
+    'user-stopped-typing': function (data) {
+      this.chat.removeTyping(data.user);
+    }
+  }, this);
+
 
   app.on('connected', function(data, reconnect) {
 
@@ -102,6 +102,24 @@ inherits(RoomPage, Page);
 
 module.exports = RoomPage;
 
+
+RoomPage.prototype.sendMessage = function(text) {
+  this.app.sendMessage(text);
+
+  this.addAction({
+    user: this.app.user,
+    text: text,
+    message: true
+  });
+};
+
+RoomPage.prototype.startTyping = function() {
+  this.socket.emit('typing');
+};
+
+RoomPage.prototype.stopTyping = function() {
+  this.socket.emit('stopped-typing');
+};
 
 RoomPage.prototype.addAction = function(action) {
   return this.chat.addAction(action);
