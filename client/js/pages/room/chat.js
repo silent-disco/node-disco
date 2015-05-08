@@ -11,7 +11,9 @@ var assign = require('lodash/object/assign'),
 var autoScroll = require('../../base/hooks/auto-scroll');
 
 var now = require('../../util/now');
+
 var extractUrls = require('../../util/extract-urls');
+var extractEmojis = require('../../util/extract-emojis');
 
 
 var TYPING_TIMER = 400;
@@ -184,11 +186,14 @@ function getUserColor(user) {
 
 function renderText(text) {
 
-  var parts = extractUrls(text);
+  var parts = extractUrls(extractEmojis(text));
 
   return parts.map(function(part) {
     if (part.url) {
       return h('a', { href: part.url, target: '_blank' }, part.url);
+    } else
+    if (part.emoji) {
+      return h('span.twa.twa-lg.twa-' + part.emoji, { title: part.emoji });
     } else {
       return part.text;
     }

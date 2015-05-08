@@ -3,7 +3,7 @@ var extractUrls = require('../../../../../client/js/util/extract-urls');
 
 describe('client/util', function() {
 
-  it('should match url', function() {
+  it('should extract urls', function() {
 
     // given
     var text = 'Check out http://foobar.com and http://some-song.bar?music=0011 and so forth';

@@ -1,3 +1,5 @@
+var transform = require('lodash/object/transform');
+
 var URL_REGEX = new RegExp(
   '(' +
     // protocol identifier (optional) + //
@@ -16,32 +18,43 @@ var URL_REGEX = new RegExp(
  * Returns a list of { text: ... }, { url: ... } parts extracted
  * from the given text.
  *
- * @param  {String} text
+ * @param {Array<Object>|String} parts
  *
  * @return {Array<Object>}
  */
-function extractUrls(text) {
-  var urls = text.match(URL_REGEX);
+function extractUrls(parts) {
 
-  var parts = [];
+  if (typeof parts === 'string') {
+    parts = [ {
+      text: parts
+    } ];
+  }
 
-  var lastIdx = 0,
-      idx = 0;
+  return transform(parts, function(newParts, part) {
 
-  (urls || []).forEach(function(url) {
+    var text = part.text;
 
-    idx = text.indexOf(url, lastIdx);
+    if (text) {
+      var urls = text.match(URL_REGEX);
 
-    parts.push({ text: text.substring(lastIdx, idx) });
-    parts.push({ url: url });
+      var lastIdx = 0,
+          idx = 0;
 
-    lastIdx = idx + url.length;
+      (urls || []).forEach(function(url) {
+
+        idx = text.indexOf(url, lastIdx);
+
+        newParts.push({ text: text.substring(lastIdx, idx) });
+        newParts.push({ url: url });
+
+        lastIdx = idx + url.length;
+      });
+
+      newParts.push({ text: text.substring(lastIdx) });
+    } else {
+      newParts.push(part);
+    }
   });
-
-  parts.push({ text: text.substring(lastIdx) });
-
-  return parts;
 }
-
 
 module.exports = extractUrls;
