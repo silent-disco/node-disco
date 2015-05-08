@@ -25,7 +25,7 @@ function App(config) {
   // disconnected
   // connected
   // reconnecting
-  this.socketState = 'disconnected';
+  this.socketState = SOCKET_DISCONNECTED;
 
   // pages
   this.loginPage = new LoginPage(this);
