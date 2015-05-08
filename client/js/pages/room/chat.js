@@ -8,6 +8,7 @@ var assign = require('lodash/object/assign'),
     findIndex = require('lodash/array/findIndex'),
     map = require('lodash/collection/map');
 
+var autoScroll = require('../../base/hooks/auto-scroll');
 
 var now = require('../../util/now');
 var extractUrls = require('../../util/extract-urls');
@@ -111,11 +112,11 @@ Chat.prototype.oninput = function(event) {
 
 Chat.prototype.render = function() {
 
-  return h('#chat', [
-    h('.chat', [
-      h('ul.actions', [
-        renderActions(this.actions)
-      ])
+  return h('.chat', [
+    h('ul.actions', {
+        scroll: autoScroll()
+      }, [
+      renderActions(this.actions)
     ]),
     h('form.new-message', { 'ev-keypress': this.oninput.bind(this) }, [
       h('textarea', {
