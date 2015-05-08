@@ -1,0 +1,16 @@
+{
+  "name": "disco",
+  "css_prefix_text": "icon-",
+  "css_use_suffix": false,
+  "hinting": true,
+  "units_per_em": 1000,
+  "ascent": 850,
+  "glyphs": [
+    {
+      "uid": "2c5335c6e56b876139d7a58ab2f4b2fe",
+      "css": "notifications",
+      "code": 59392,
+      "src": "entypo"
+    }
+  ]
+}
