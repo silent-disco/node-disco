@@ -12,6 +12,7 @@ var gulp = require('gulp'),
     errorify = require('errorify'),
     watchify = require('watchify'),
     browserify = require('browserify'),
+    open = require('open'),
     del = require('del'),
     errorify = require('errorify'),
     source = require('vinyl-source-stream'),
@@ -154,6 +155,9 @@ gulp.task('nodemon', function(cb) {
   });
 });
 
+gulp.task('open', function() {
+  return open('http://localhost:3000');
+});
 
 gulp.task('clean', sequence('client:clean'));
 
@@ -179,6 +183,7 @@ gulp.task('serve', sequence(
   ],
   [
     'server:livereload',
-    'client:watch'
+    'client:watch',
+    'open'
   ]
 ));
