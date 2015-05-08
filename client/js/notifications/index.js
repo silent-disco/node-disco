@@ -21,7 +21,7 @@ function Notifications(app) {
     config.set(NOTIFICATIONS_ENABLED, active);
 
     if (active && Notify.needsPermission) {
-      Notify.requestPermission(createNotification);
+      Notify.requestPermission();
     }
   };
 
