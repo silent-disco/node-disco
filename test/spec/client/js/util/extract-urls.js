@@ -1,7 +1,7 @@
 var extractUrls = require('../../../../../client/js/util/extract-urls');
 
 
-describe('client/util', function() {
+describe('client/util/extract-urls', function() {
 
   it('should extract urls', function() {
 
