@@ -8,6 +8,8 @@ var assign = require('lodash/object/assign'),
     findIndex = require('lodash/array/findIndex'),
     map = require('lodash/collection/map');
 
+var matchesSelector = require('matches-selector');
+
 var autoScroll = require('../../base/hooks/auto-scroll');
 
 var now = require('../../util/now');
@@ -74,6 +76,15 @@ Chat.prototype.addAction = function(action, options) {
   this.changed();
 };
 
+Chat.prototype.onclick = function(event) {
+
+  // focus the chat window whenever a user clicks on
+  // our the message area.
+  if (matchesSelector(event.target, '.action, .actions')) {
+    this.focus();
+  }
+};
+
 Chat.prototype.oninput = function(event) {
 
   if (event.charCode === 13 && !event.shiftKey) {
@@ -114,7 +125,7 @@ Chat.prototype.oninput = function(event) {
 
 Chat.prototype.toNode = function() {
 
-  return h('.chat', [
+  return h('.chat', { 'ev-click': this.onclick.bind(this) }, [
     h('ul.actions', {
         scroll: autoScroll()
       }, [
