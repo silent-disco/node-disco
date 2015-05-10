@@ -1,24 +1,23 @@
 var inherits = require('inherits');
 
-var Component = require('../component');
+var Child = require('./child');
 
 var h = require('virtual-dom/h');
 
 
 function Page(name, app) {
 
-  Component.call(this);
+  Child.call(this);
 
-  this.name = name;
   this.app = app;
-
+  this.name = name;
 
   function activated(page) {
 
     this.active = page === this;
 
     if (this.active) {
-      this.attachTo('body');
+      this.attachTo(app);
 
       this.focus();
     } else {
@@ -29,9 +28,10 @@ function Page(name, app) {
   app.on('page.activate', activated.bind(this));
 }
 
-inherits(Page, Component);
+inherits(Page, Child);
 
 module.exports = Page;
+
 
 Page.prototype.renderPage = function(opts, children) {
 
@@ -42,8 +42,4 @@ Page.prototype.renderPage = function(opts, children) {
   }
 
   return h(pageSelector, opts, children);
-};
-
-Page.prototype.activate = function() {
-  this.app.emit('page.activate', this);
 };

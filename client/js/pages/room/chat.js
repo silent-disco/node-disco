@@ -2,7 +2,7 @@ var h = require('virtual-dom/h');
 
 var inherits = require('inherits');
 
-var Component = require('../../base/component');
+var Component = require('../../base/components/child');
 
 var assign = require('lodash/object/assign'),
     findIndex = require('lodash/array/findIndex'),
@@ -112,7 +112,7 @@ Chat.prototype.oninput = function(event) {
   setTimeout(stopTyping.bind(this), TYPING_TIMER);
 };
 
-Chat.prototype.render = function() {
+Chat.prototype.toNode = function() {
 
   return h('.chat', [
     h('ul.actions', {

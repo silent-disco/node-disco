@@ -1,8 +1,10 @@
-var Emitter = require('events');
-
 var io = require('socket.io-client');
 
 var inherits = require('inherits');
+
+var h = require('virtual-dom/h');
+
+var Root = require('./base/components/root');
 
 var LoginPage = require('./pages/login'),
     RoomPage = require('./pages/room');
@@ -12,9 +14,9 @@ var SOCKET_DISCONNECTED = 'disconnected',
     SOCKET_CONNECTED = 'connected';
 
 
-function App(config) {
+function App($parent, config) {
 
-  Emitter.call(this);
+  Root.call(this, $parent);
 
   // environment init
   this.config = config;
@@ -30,6 +32,8 @@ function App(config) {
   // pages
   this.loginPage = new LoginPage(this);
   this.roomPage = new RoomPage(this);
+
+  this.activePage = null;
 
   window.addEventListener('popstate', this.stateChanged.bind(this));
 
@@ -68,7 +72,7 @@ function App(config) {
   }.bind(this));
 }
 
-inherits(App, Emitter);
+inherits(App, Root);
 
 module.exports = App;
 
@@ -99,13 +103,27 @@ App.prototype.joinRoom = function(user) {
 
   this.socket.emit('join', this.roomName, this.user.name);
 
-  this.roomPage.activate();
+  this.activatePage(this.roomPage);
+};
+
+App.prototype.activatePage = function(page) {
+  this.emit('page.activate', page);
+
+  this.activePage = page;
+
+  this.changed();
 };
 
 App.prototype.run = function() {
-  this.loginPage.activate();
+  this.activatePage(this.loginPage);
 };
 
+App.prototype.render = function() {
+  return h('.disco', [
+    this.loginPage.render(),
+    this.roomPage.render()
+  ]);
+};
 
 /**
  * Extract the room from the users

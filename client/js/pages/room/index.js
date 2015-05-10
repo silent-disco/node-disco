@@ -4,11 +4,12 @@ var h = require('virtual-dom/h');
 
 var on = require('../../util/on');
 
-var Page = require('../../base/page');
+var Page = require('../../base/components/page');
 
 var Notifications = require('../../notifications');
 
 var Chat = require('./chat');
+
 
 function RoomPage(app) {
   Page.call(this, 'room', app);
@@ -151,7 +152,7 @@ RoomPage.prototype.toggleNotifications = function() {
   this.changed();
 };
 
-RoomPage.prototype.render = function() {
+RoomPage.prototype.toNode = function() {
 
   var notificationsActive = this.notifications.isActive() ? '.active' : '';
 

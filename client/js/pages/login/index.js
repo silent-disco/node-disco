@@ -2,7 +2,7 @@ var inherits = require('inherits');
 
 var h = require('virtual-dom/h');
 
-var Page = require('../../base/page');
+var Page = require('../../base/components/page');
 
 
 function LoginPage(app) {
@@ -25,7 +25,8 @@ LoginPage.prototype.join = function(e) {
   e.preventDefault();
 };
 
-LoginPage.prototype.render = function() {
+LoginPage.prototype.toNode = function() {
+
   return this.renderPage({ 'ev-click': this.focus.bind(this) }, [
     h('form', { 'ev-submit': this.join.bind(this) }, [
       h('h3.title', [
