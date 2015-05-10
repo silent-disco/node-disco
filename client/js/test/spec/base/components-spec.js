@@ -1,0 +1,3 @@
+describe('base/components', function() {
+
+});

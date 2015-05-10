@@ -1,5 +1,5 @@
-var db = require('../../../../api/db'),
-    RoomsModel = require('../../../../api/rooms/model');
+var db = require('../../../db'),
+    RoomsModel = require('../../../rooms/model');
 
 
 describe('api/rooms/model', function() {

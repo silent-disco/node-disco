@@ -1,4 +1,4 @@
-var extractUrls = require('../../../../../client/js/util/extract-urls');
+var extractUrls = require('../../../util/extract-urls');
 
 
 describe('client/util/extract-urls', function() {

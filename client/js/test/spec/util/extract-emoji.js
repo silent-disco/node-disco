@@ -1,4 +1,4 @@
-var extractEmojis = require('../../../../../client/js/util/extract-emojis');
+var extractEmojis = require('../../../util/extract-emojis');
 
 
 describe('client/util/extract-emojis', function() {

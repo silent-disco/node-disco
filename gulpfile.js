@@ -12,6 +12,8 @@ var gulp = require('gulp'),
     errorify = require('errorify'),
     watchify = require('watchify'),
     browserify = require('browserify'),
+    mocha = require('gulp-mocha'),
+    karma = require('karma').server,
     open = require('open'),
     del = require('del'),
     errorify = require('errorify'),
@@ -128,7 +130,7 @@ gulp.task('client:size', function() {
 gulp.task('client:watch', function() {
   gulp.watch(['public/**/*'], ['client:size']);
 
-  gulp.watch(['client/**/*.js'], ['client:lint'])
+  gulp.watch(['client/**/*.js'], ['client:lint']);
   gulp.watch(['client/**/*.less'], ['client:less']);
   gulp.watch(['client/index.html'], ['client:copy']);
 });
@@ -137,6 +139,26 @@ gulp.task('server', sequence('nodemon'));
 
 gulp.task('server:livereload', function() {
   livereload.listen();
+});
+
+gulp.task('client:test', function(done) {
+  karma.start({
+    configFile: __dirname + '/client/js/test/config/karma.unit.js',
+    singleRun: true
+  }, done);
+});
+
+gulp.task('server:test', function() {
+
+  // init expect
+  require('./api/test/expect');
+
+  // init co-mocha
+  require('co-mocha');
+
+  gulp.src('api/test/**/*.js')
+      .pipe(plumber())
+      .pipe(mocha({ ui: 'bdd' }));
 });
 
 gulp.task('nodemon', function(cb) {
@@ -154,6 +176,8 @@ gulp.task('nodemon', function(cb) {
     console.log('Starting...');
   });
 });
+
+gulp.task('test', sequence('client:test', 'server:test'));
 
 gulp.task('open', function() {
   return open('http://localhost:3000');
