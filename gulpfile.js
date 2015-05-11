@@ -143,10 +143,19 @@ gulp.task('server:livereload', function() {
 
 gulp.task('client:test', function(done) {
   karma.start({
-    configFile: __dirname + '/client/js/test/config/karma.unit.js',
-    singleRun: true
+    configFile: __dirname + '/client/js/test/config/karma.unit.js'
   }, done);
 });
+
+
+gulp.task('client:test:watch', function(done) {
+  karma.start({
+    configFile: __dirname + '/client/js/test/config/karma.unit.js',
+    singleRun: false,
+    autoWatch: true
+  }, done);
+});
+
 
 gulp.task('server:test', function() {
 
