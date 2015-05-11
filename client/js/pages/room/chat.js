@@ -18,7 +18,7 @@ var extractUrls = require('../../util/extract-urls');
 var extractEmojis = require('../../util/extract-emojis');
 
 
-var TYPING_TIMER = 400;
+var TYPING_TIMER = 800;
 
 
 function Chat(parent) {
