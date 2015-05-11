@@ -5,7 +5,7 @@ module.exports = function(karma) {
 
     basePath: '../../',
 
-    frameworks: [ 'browserify', 'mocha', 'chai' ],
+    frameworks: [ 'browserify', 'mocha', 'chai-as-promised', 'chai' ],
 
     files: [
       '**/test/spec/**/*.js'
@@ -15,7 +15,7 @@ module.exports = function(karma) {
       '**/test/spec/**/*.js': [ 'browserify' ]
     },
 
-    browsers: [ 'PhantomJS' ],
+    browsers: [ 'Chrome' ],
 
     browserNoActivityTimeout: 30000,
 

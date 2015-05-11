@@ -2,7 +2,7 @@ var forEach = require('foreach');
 
 var uuid = require('uuid');
 
-var Promise = require('bluebird');
+var delay = require('../../util/promise/delay');
 
 
 var sanitize = function(str) {
@@ -332,7 +332,8 @@ function RoomsEndpoint(events, rooms, app) {
       socket.ondisconnect();
     });
 
-    return Promise.delay(2500);
+    // return Promise<Void>
+    return delay(2500);
   });
 }
 
