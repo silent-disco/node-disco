@@ -1,4 +1,5 @@
-var forEach = require('foreach');
+var forEach = require('foreach'),
+    map = require('lodash/collection/map');
 
 var uuid = require('uuid');
 
@@ -13,6 +14,11 @@ function now() {
   return new Date().getTime();
 }
 
+function makeCollection(users) {
+    return map(users, function(user) {
+        return { name: user.name, id: user.id };
+    });
+}
 
 /**
  * A rooms end point
@@ -71,12 +77,12 @@ function RoomsEndpoint(events, rooms, app) {
 
       yield room.members.remove(user);
 
-      var activeUsers = yield room.members.count();
+      var activeUsers = yield room.members.fetchMembers();
 
       if (!quit) {
         broadcast(session, 'user-left', {
           user: user,
-          activeUsers: activeUsers
+          activeUsers: makeCollection(activeUsers)
         });
       }
     } catch (e) {
@@ -139,7 +145,7 @@ function RoomsEndpoint(events, rooms, app) {
 
       yield room.members.add(user);
 
-      var activeUsers = yield room.members.count();
+      var activeUsers = yield room.members.fetchMembers();
 
       this.socket.join(roomId);
 
@@ -148,7 +154,7 @@ function RoomsEndpoint(events, rooms, app) {
 
       // send local joined event back
       emit(this, 'joined', {
-        activeUsers: activeUsers,
+        activeUsers: makeCollection(activeUsers),
         user: user,
         roomId: roomId
       });
@@ -156,7 +162,7 @@ function RoomsEndpoint(events, rooms, app) {
       // echo that a person has connected
       broadcast(this, 'user-joined', {
         user: user,
-        activeUsers: activeUsers
+        activeUsers: makeCollection(activeUsers)
       });
 
     } catch (e) {
