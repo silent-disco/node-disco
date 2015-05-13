@@ -10,6 +10,8 @@ var Notifications = require('../../notifications');
 
 var Chat = require('./chat');
 
+var UsersList = require('./users');
+
 
 function RoomPage(app) {
   Page.call(this, 'room', app);
@@ -17,6 +19,8 @@ function RoomPage(app) {
   this.notifications = new Notifications(app);
 
   this.chat = new Chat(this);
+
+  this.users = new UsersList(this);
 
   this.socket = app.socket;
 
@@ -46,6 +50,8 @@ function RoomPage(app) {
       title: data.user.name + ' joined',
     });
 
+    this.users.add(data.user);
+
     this.addAction({
       type: 'status',
       user: data.user,
@@ -60,6 +66,8 @@ function RoomPage(app) {
     this.notifications.add({
       title: data.user.name + ' left'
     });
+
+    this.users.remove(data.user);
 
     this.addAction({
       type: 'status',
@@ -90,6 +98,8 @@ function RoomPage(app) {
     } else {
       this.log('welcome to silent disco / ' + data.roomId);
     }
+
+    this.users.updateList(data.activeUsers);
 
     this.printParticipants(data);
   }.bind(this));
@@ -138,13 +148,12 @@ RoomPage.prototype.log = function(text) {
 };
 
 RoomPage.prototype.printParticipants = function(data) {
-
   var text;
 
-  if (data.activeUsers === 1) {
+  if (data.activeUsers.length === 1) {
     text = 'you are the only one in this room';
   } else {
-    text = 'there are ' + data.activeUsers + ' users in this room';
+    text = 'there are ' + data.activeUsers.length + ' users in this room';
   }
 
   this.log(text);
@@ -168,6 +177,7 @@ RoomPage.prototype.toNode = function() {
         'ev-click': this.toggleNotifications.bind(this)
       })
     ]),
-    this.chat.render()
+    this.chat.render(),
+    this.users.render()
   ]);
 };
