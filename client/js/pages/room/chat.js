@@ -25,6 +25,8 @@ function Chat(parent) {
   Component.call(this, parent);
 
   this.actions = [];
+
+  this.actionRenderers = new ActionRenderers(this);
 }
 
 inherits(Chat, Component);
@@ -34,24 +36,24 @@ module.exports = Chat;
 Chat.prototype.removeTyping = function(user) {
 
   var idx = findIndex(this.actions, function(a) {
-    return a.typing && a.user.id === user.id;
+    return a.type === 'typing' && a.user.id === user.id;
   });
 
-  if (idx !== -1) {
-    this.actions.splice(idx, 1);
-  }
+  var wasTyping = idx !== -1;
 
-  if (idx !== -1) {
+  if (wasTyping) {
+    this.actions.splice(idx, 1);
+
     this.changed();
   }
 
-  return idx !== -1;
+  return wasTyping;
 };
 
 Chat.prototype.addTyping = function(user) {
 
   this.addAction({
-    typing: true,
+    type: 'typing',
     user: user,
     text: 'is typing'
   });
@@ -65,7 +67,7 @@ Chat.prototype.addAction = function(action, options) {
 
   var fade = options.fade;
 
-  if (action.typing || action.message) {
+  if (action.type === 'typing' || action.type === 'message') {
     fade = this.removeTyping(action.user);
   }
 
@@ -123,13 +125,17 @@ Chat.prototype.oninput = function(event) {
   setTimeout(stopTyping.bind(this), TYPING_TIMER);
 };
 
+Chat.prototype.play = function(song) {
+  this.parent.app.play(song);
+};
+
 Chat.prototype.toNode = function() {
 
   return h('.chat', { 'ev-click': this.onclick.bind(this) }, [
     h('ul.actions', {
         scroll: autoScroll()
       }, [
-      renderActions(this.actions)
+      this.renderActions()
     ]),
     h('form.new-message', { 'ev-keypress': this.oninput.bind(this) }, [
       h('textarea', {
@@ -140,41 +146,72 @@ Chat.prototype.toNode = function() {
   ]);
 };
 
+Chat.prototype.renderActions = function() {
+  var actions = this.actions;
 
-function renderActions(actions) {
+  var actionRenderers = this.actionRenderers;
 
   return map(actions, function(action) {
 
-    var user = action.user;
+    var type = action.type;
 
-    var actionSelector = user ? '.action' : '.log';
-
-    if (action.typing) {
-      actionSelector += '.typing';
-    }
+    var actionSelector = '.action.' + action.type;
 
     if (action.fade) {
       actionSelector += '.fade';
     }
 
-    if (action.message) {
-      actionSelector += '.message';
-    }
+    var renderer = actionRenderers[type] || actionRenderers['default'];
 
-    return h(actionSelector, [
-      user ? h('span.author', [
+    return h(actionSelector, renderer(action));
+  });
+};
+
+
+function ActionRenderers(chat) {
+
+  this['default'] = function(action) {
+
+    var user = action.user;
+
+    return [
+      h('span.author', [
         h('span.name', {
           style: {
             color: getUserColor(user)
           }
         }, action.user.name)
-      ]) : '',
+      ]),
       h('span.body', renderText(action.text))
-    ]);
-  });
+    ];
+  };
 
+  this['log'] = function(action) {
+    return [
+      h('span.body', renderText(action.text))
+    ];
+  };
+
+  this['song'] = function(action) {
+    var song = action.song;
+
+    return [
+      h('img.artwork', { src: song.pictureUrl }),
+      h('.summary', [
+        h('a', { href: song.permalinkUrl, target: '_blank' }, song.name),
+        ' - ',
+        h('a', { href: song.artist.permalinkUrl, target: '_blank' }, song.artist.name),
+        ' (',
+        h('span.duration', String(song.duration)),
+        ')'
+      ]),
+      h('.controls', [
+        h('button.play', { 'ev-click': chat.play.bind(chat, song) }, 'play'),
+        h('button.add', 'add')
+      ])
+    ];
+  };
 }
-
 
 var COLORS = [
   '#e21400', '#91580f', '#f8a700', '#f78b00',

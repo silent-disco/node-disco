@@ -74,7 +74,7 @@ Root.prototype.update = function() {
   var node = this.node,
       newNode = this.render();
 
-  patches = diff(node, newNode);
+  var patches = diff(node, newNode);
 
   console.log('update', $el, patches);
 

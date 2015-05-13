@@ -12,6 +12,7 @@ var gulp = require('gulp'),
     errorify = require('errorify'),
     watchify = require('watchify'),
     browserify = require('browserify'),
+    babelify = require('babelify'),
     mocha = require('gulp-mocha'),
     karma = require('karma').server,
     open = require('open'),
@@ -69,6 +70,10 @@ function bundle(options) {
   } else {
     bundler = browserify(browserifyOptions);
   }
+
+  bundler.transform(babelify.configure({
+    optional: ['es7.asyncFunctions']
+  }));
 
   bundler.build = build;
 

@@ -1,10 +1,10 @@
 
-var promise = require('./create');
+var Promise = require('promise');
 
 module.exports = function(delay) {
 
   return function(result) {
-    return promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       setTimeout(function() {
         resolve(result);
       }, delay);

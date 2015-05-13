@@ -34,9 +34,9 @@ function RoomPage(app) {
     });
 
     this.addAction({
+      type: 'message',
       user: data.user,
-      text: data.message,
-      message : true
+      text: data.message
     });
   }.bind(this));
 
@@ -47,6 +47,7 @@ function RoomPage(app) {
     });
 
     this.addAction({
+      type: 'status',
       user: data.user,
       text: 'joined'
     });
@@ -61,6 +62,7 @@ function RoomPage(app) {
     });
 
     this.addAction({
+      type: 'status',
       user: data.user,
       text: 'left'
     });
@@ -107,10 +109,12 @@ module.exports = RoomPage;
 RoomPage.prototype.sendMessage = function(text) {
   this.app.sendMessage(text);
 
+  this.emit('send-message', text);
+
   this.addAction({
     user: this.app.user,
     text: text,
-    message: true
+    type: 'message'
   });
 };
 
@@ -128,7 +132,7 @@ RoomPage.prototype.addAction = function(action) {
 
 RoomPage.prototype.log = function(text) {
   return this.addAction({
-    log: true,
+    type: 'log',
     text: text
   });
 };

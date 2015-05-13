@@ -1,0 +1,199 @@
+@disco-font-family: 'Open Sans', sans-serif;
+
+* {
+  box-sizing: border-box;
+}
+
+html, input, textarea {
+  font-family: @disco-font-family;
+  font-weight: 400;
+  font-size: 15px;
+}
+
+h1, h2, h3 {
+  font-weight: 300;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 100%;
+}
+
+ul {
+  list-style: none;
+  word-wrap: break-word;
+}
+
+/* pages */
+
+.page {
+  position: absolute;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+
+  &.active {
+    opacity: 1.0;
+    z-index: 100;
+  }
+}
+
+
+
+/* login page */
+
+.login-page {
+  background: black;
+
+  form {
+    height: 100px;
+    margin-top: -100px;
+    position: absolute;
+
+    padding: 10px;
+
+    text-align: center;
+    top: 50%;
+    width: 100%;
+  }
+
+  .room-name {
+    color: #CAF;
+  }
+
+  input.user-name {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid white;
+    outline: none;
+    padding-bottom: 15px;
+    text-align: center;
+    max-width: 100%;
+    width: 400px;
+  }
+
+  input.user-name,
+  .title {
+    color: white;
+    font-size: 28px;
+  }
+}
+
+
+/* room page */
+
+.room-page {
+  .chat {
+    height: 100%;
+    padding-bottom: 60px;
+  }
+
+  .log {
+    color: gray;
+    margin: 10px 0;
+  }
+
+  .log:before {
+    content: '#';
+    margin-right: 5px;
+    display: inline-block;
+  }
+
+  .log:first-child {
+    margin-top: 0;
+  }
+
+  .log + .log {
+    margin-top: -10px;
+  }
+
+  .actions {
+    height: 100%;
+    margin: 0;
+    overflow-y: auto;
+    padding: 15px;
+  }
+
+  .action .body {
+    color: gray;
+    white-space: pre-wrap;
+  }
+
+  .action.message {
+
+    .body {
+      color: black;
+    }
+
+    .author:after {
+      content: '$';
+      padding-left: 5px;
+      color: gray;
+    }
+  }
+
+  .author {
+    overflow: hidden;
+    float: left;
+    margin-right: 5px;
+
+    .name {
+      -webkit-user-select: none;  /* Chrome all / Safari all */
+      -moz-user-select: none;     /* Firefox all */
+      -ms-user-select: none;      /* IE 10+ */
+
+      /* No support for these yet, use at own risk */
+      -o-user-select: none;
+      user-select: none;
+    }
+  }
+
+  .new-message {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    height: 60px;
+    width: 100%;
+
+    border-top: 1px solid gray;
+
+    textarea {
+      width: 100%;
+
+      position: absolute;
+      top: 0;
+      bottom: 0;
+
+      padding: 10px 10px 0 10px;
+
+      border: none;
+      outline: none;
+      overflow-y: auto;
+    }
+  }
+}
+
+
+/**
+ * error handling
+ */
+body > .errorify {
+  color: red;
+  font-family: 'Consolas', monospace;
+
+  margin: 0;
+  padding: 20px;
+
+  width: 100%;
+  white-space: pre-wrap;
+}

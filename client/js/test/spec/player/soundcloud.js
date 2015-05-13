@@ -1,8 +1,8 @@
+require("babelify/polyfill");
+
 var Config = require('../../../config/key-value');
 
 var SoundCloud = require('../../../player/soundcloud');
-
-var Promise = require('promise');
 
 
 describe('player/soundcloud', function() {
@@ -12,36 +12,34 @@ describe('player/soundcloud', function() {
   });
 
 
-  var soundCloud = new SoundCloud(config);
+  var soundCloud = new SoundCloud('soundcloud', config);
 
 
   describe('isSong', function() {
 
-    it('should detect valid url', function() {
+    it('should detect valid url', async function() {
 
       // given
       var validUrl = 'https://soundcloud.com/allefarben/alle-farben-fusion-secret-gig';
 
       // when
-      var isValid = Promise.resolve(soundCloud.isSong(validUrl));
+      var isValid = await soundCloud.isSong(validUrl);
 
       // then
-      expect(isValid).to.eventually.be.true;
+      expect(isValid).to.be.true;
     });
 
 
-    it('should detect invalid url', function() {
+    it('should detect invalid url', async function() {
 
       // given
       var invalidUrl = 'http://not-a-song';
 
       // when
-      var isValid = Promise.resolve(soundCloud.isSong(invalidUrl));
+      var isValid = await soundCloud.isSong(invalidUrl);
 
       // then
-      return Promise.all([
-        expect(isValid).to.eventually.be.false,
-      ]);
+      expect(isValid).to.be.false;
     });
 
   });
@@ -49,7 +47,7 @@ describe('player/soundcloud', function() {
 
   describe('fetchInfo', function() {
 
-    it('should fetch info by url', function() {
+    it('should fetch info by url', async function() {
 
       // given
       var songUrl = 'https://soundcloud.com/5d-records/jamason-busch-piraten-camp-572014-pt1';
@@ -72,42 +70,42 @@ describe('player/soundcloud', function() {
       };
 
       // when
-      var song = soundCloud.fetchInfo(songUrl);
+      var song = await soundCloud.fetchInfo(songUrl);
 
       // then
-      return Promise.all([
-        expect(song).to.eventually.eql(expectedSong)
-      ]);
+      expect(song).to.eql(expectedSong);
     });
 
 
-    it('should handle invalid url with error', function() {
+    it('should handle invalid url with error', async function() {
 
       // given
       var songUrl = 'http://not-a-song';
 
       // when
-      var song = soundCloud.fetchInfo(songUrl);
+      try {
+        await soundCloud.fetchInfo(songUrl);
 
-      // then
-      return Promise.all([
-        expect(song).to.eventually.be.rejectedWith('404 - Not Found')
-      ]);
+        throw new Error('expected exception');
+      } catch (e) {
+        // then
+        expect(e.message).to.eql('404 - Not Found');
+      }
     });
 
 
-    it('should handle playlist url with error', function() {
+    it('should handle playlist url with error', async function() {
 
       // given
       var playlistUrl = 'https://soundcloud.com/hi-speed/sets/jamz-buschpiratencamp';
 
       // when
-      var song = soundCloud.fetchInfo(playlistUrl);
-
-      // then
-      return Promise.all([
-        expect(song).to.eventually.be.rejectedWith('not a track but a playlist')
-      ]);
+      try {
+        await soundCloud.fetchInfo(playlistUrl);
+      } catch(e) {
+        // then
+        expect(e.message).to.eql('not a track but a playlist');
+      }
     });
 
   });
@@ -118,67 +116,43 @@ describe('player/soundcloud', function() {
     this.timeout(10000);
 
 
-    afterEach(function() {
-      return soundCloud.stop().then(function(result) {
-        console.log('stopped', result);
-
-        return result;
-      });
+    afterEach(async function() {
+      await soundCloud.stop();
     });
 
-    function wait(time) {
-
-      return function(result) {
-        return new Promise(function(resolve, reject) {
-          setTimeout(function() {
-            resolve(result);
-          }, time);
-        });
-      };
-    }
-
-    function play(url) {
-      return soundCloud.fetchInfo(url).then(function(song) {
-        return soundCloud.play(song);
-      }).then(wait(1000));
+    async function play(url) {
+      var song = await soundCloud.fetchInfo(url);
+      return soundCloud.play(song);
     }
 
 
-    it('should play song', function() {
+    it('should play song', async function() {
 
       // given
       var songUrl = 'https://soundcloud.com/allefarben/alle-farben-fusion-secret-gig';
 
       // when
-      var playSong = play(songUrl);
+      var song = await play(songUrl);
 
       // then
-      return playSong.then(function(song) {
-        expect(song.playState).to.eql(1);
-      });
+      expect(song.playState).to.eql(1);
     });
 
 
-    it('should stop previous playing song', function() {
+    it('should stop previous playing song', async function() {
 
       // given
       var songUrl = 'https://soundcloud.com/allefarben/alle-farben-fusion-secret-gig';
       var otherSongUrl = 'https://soundcloud.com/bebetta/bebetta-at-ploetzlich-am-meer';
 
-      var playSong = play(songUrl);
-
-      var song;
+      var song = await play(songUrl);
 
       // when
-      return playSong.then(function(_song) {
-        song = _song;
+      var otherSong = await play(otherSongUrl);
 
-        return play(otherSongUrl);
-      })
-      .then(function(otherSong) {
-        expect(otherSong.playState).to.eql(1);
-        expect(song.playState).to.eql(0);
-      });
+      // then
+      expect(otherSong.playState).to.eql(1);
+      expect(song.playState).to.eql(0);
     });
 
   });

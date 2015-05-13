@@ -31,16 +31,19 @@ function extractSong(data) {
   });
 }
 
-function SoundCloud(config) {
+function SoundCloud(id, config) {
 
-  loadSC().then(function(sc) {
-    sc.initialize({
-      client_id: config.get('soundcloudClientId')
+  this.id = id;
+
+  this.sc = function() {
+    return loadSC().then(function(sc) {
+      sc.initialize({
+        client_id: config.get('soundcloudClientId')
+      });
+
+      return sc;
     });
-  }).catch(function scError(error) {
-    console.error('failed to load SoundCloud SDK');
-    console.error(error);
-  });
+  };
 }
 
 module.exports = SoundCloud;
@@ -51,9 +54,9 @@ module.exports = SoundCloud;
  *
  * @param  {String} identifier
  *
- * @return {Boolean|Promise<Boolean>}
+ * @return {Promise<Boolean>}
  */
-SoundCloud.prototype.isSong = function(identifier) {
+SoundCloud.prototype.isSong = async function(identifier) {
   return SONG_URL_PATTERN.test(identifier);
 };
 
@@ -64,21 +67,22 @@ SoundCloud.prototype.isSong = function(identifier) {
  *
  * @return {Promise<Song>}
  */
-SoundCloud.prototype.fetchInfo = function(url) {
-  return loadSC().then(function(sc) {
-    return new Promise(function(resolve, reject) {
-      sc.get('/resolve.json', { url: url }, function(result, err) {
+SoundCloud.prototype.fetchInfo = async function(url) {
 
-        if (err) {
-          reject(err);
-        } else {
-          if (result.kind !== 'track') {
-            return reject(new Error('not a track but a ' + result.kind));
-          }
+  var sc = await this.sc();
 
-          resolve(extractSong(result));
+  return new Promise(function(resolve, reject) {
+    sc.get('/resolve.json', { url: url }, function(result, err) {
+
+      if (err) {
+        reject(err);
+      } else {
+        if (result.kind !== 'track') {
+          return reject(new Error('not a track but a ' + result.kind));
         }
-      });
+
+        resolve(extractSong(result));
+      }
     });
   });
 };
@@ -92,26 +96,28 @@ SoundCloud.prototype.fetchInfo = function(url) {
  *
  * @return {Promise<Sound>}
  */
-SoundCloud.prototype.play = function(song, skip) {
+SoundCloud.prototype.play = async function(song, skip) {
 
   var self = this;
 
-  return this.stop().then(loadSC).then(function(sc) {
-            return new Promise(function(resolve, reject) {
-              sc.stream(song.streamUrl, function(sound, err) {
-                if (err) {
-                  reject(err);
-                } else {
-                  sound.play();
-                  self._playing = {
-                    song: song,
-                    sound: sound
-                  };
+  await this.stop();
 
-                  resolve(sound);
-                }
-              });
-            });
+  var sc = await this.sc();
+
+  return new Promise(function(resolve, reject) {
+    sc.stream(song.streamUrl, function(sound, err) {
+      if (err) {
+        reject(err);
+      } else {
+        sound.play();
+        self._playing = {
+          song: song,
+          sound: sound
+        };
+
+        resolve(sound);
+      }
+    });
   });
 };
 
@@ -124,7 +130,7 @@ SoundCloud.prototype.isPlaying = function() {
  *
  * @return {Promise<Song>} the song that got stopped
  */
-SoundCloud.prototype.stop = function() {
+SoundCloud.prototype.stop = async function() {
   var playing = this._playing,
       song,
       sound,
@@ -144,5 +150,5 @@ SoundCloud.prototype.stop = function() {
 
   this._playing = null;
 
-  return Promise.resolve(result);
+  return result;
 };

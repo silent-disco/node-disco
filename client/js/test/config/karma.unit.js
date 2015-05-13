@@ -5,7 +5,7 @@ module.exports = function(karma) {
 
     basePath: '../../',
 
-    frameworks: [ 'browserify', 'mocha', 'chai-as-promised', 'chai' ],
+    frameworks: [ 'browserify', 'mocha', 'chai' ],
 
     files: [
       '**/test/spec/**/*.js'
@@ -24,7 +24,10 @@ module.exports = function(karma) {
 
     // browserify configuration
     browserify: {
-      debug: true
+      debug: true,
+      transform: [
+        [ 'babelify', { optional: [ 'es7.asyncFunctions' ] } ]
+      ]
     },
 
     mocha: {

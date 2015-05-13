@@ -2,6 +2,8 @@ var io = require('socket.io-client');
 
 var inherits = require('inherits');
 
+var map = require('lodash/collection/map');
+
 var h = require('virtual-dom/h');
 
 var Root = require('./base/components/root');
@@ -13,10 +15,16 @@ var SOCKET_DISCONNECTED = 'disconnected',
     SOCKET_RECONNECTING = 'reconnecting',
     SOCKET_CONNECTED = 'connected';
 
+var SoundCloud = require('./player/soundcloud');
+
 
 function App($parent, config) {
 
   Root.call(this, $parent);
+
+  this.players = {
+    'soundcloud': new SoundCloud('soundcloud', config)
+  };
 
   // environment init
   this.config = config;
@@ -89,7 +97,45 @@ App.prototype.stateChanged = function() {
 
 App.prototype.sendMessage = function(text) {
   this.socket.emit('message', text);
+
+  this.checkSong(text.trim());
 };
+
+App.prototype.checkSong = async function(text) {
+
+  var self = this;
+
+  var players = this.players;
+
+  var compatibilePlayers = await* map(players, async function(player) {
+    var canPlay = await player.isSong(text);
+    return canPlay ? player : null;
+  });
+
+  var player = compatibilePlayers.find(function(player) {
+    return !!player;
+  });
+
+  if (player) {
+
+    var song = await player.fetchInfo(text);
+
+    song.player = player.id;
+
+    self.roomPage.addAction({
+      user: self.user,
+      type: 'song',
+      song: song
+    });
+  }
+};
+
+App.prototype.play = function(song) {
+  var player = this.players[song.player];
+
+  player.play(song);
+};
+
 
 App.prototype.joinRoom = function(user) {
 

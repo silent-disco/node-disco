@@ -1,3 +1,6 @@
+require("babelify/polyfill");
+
+
 var domReady = require('domready');
 var raf = require('raf');
 
@@ -14,6 +17,8 @@ Delegator();
 
 domReady(function() {
   var config = new Config('__disco_');
+
+  config.set('soundcloudClientId', 'e158f9f9cb11f3e88ab951b19ac39544');
 
   var app = new App('body', config);
 
