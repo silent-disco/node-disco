@@ -51,18 +51,6 @@ function App($parent, config) {
     this.socketState = SOCKET_CONNECTED;
   }.bind(this));
 
-  this.socket.on('message', function(data) {
-    this.emit('user-message', data);
-  }.bind(this));
-
-  this.socket.on('user-joined', function(data) {
-    this.emit('user-joined', data);
-  }.bind(this));
-
-  this.socket.on('user-left', function(data) {
-    this.emit('user-left', data);
-  }.bind(this));
-
   this.socket.on('disconnect', function() {
     this.emit('disconnect');
 
@@ -90,32 +78,6 @@ App.prototype.stateChanged = function() {
     this.joinRoom();
   }
 };
-
-App.prototype.sendMessage = function(text) {
-  this.socket.emit('message', text);
-
-  this.checkSong(text.trim());
-};
-
-App.prototype.checkSong = async function(text) {
-
-  var player = this.player,
-      song = await player.fetchInfo(text);
-
-  if (song) {
-
-    this.roomPage.addAction({
-      user: this.user,
-      type: 'song',
-      song: song
-    });
-  }
-};
-
-App.prototype.play = async function(song) {
-  return this.player.play(song);
-};
-
 
 App.prototype.joinRoom = function(user) {
 

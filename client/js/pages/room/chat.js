@@ -115,22 +115,17 @@ Chat.prototype.oninput = function(event) {
 
   this.typing = now();
 
-  function stopTyping() {
-
-    var typingStart = this.typing;
-    var t = now();
-
-    if (typingStart && (t - typingStart >= TYPING_TIMER)) {
-      this.emit('stop-typing');
-      this.typing = false;
-    }
-  }
-
-  setTimeout(stopTyping.bind(this), TYPING_TIMER);
+  setTimeout(this.stopTyping.bind(this), TYPING_TIMER);
 };
 
-Chat.prototype.play = function(song) {
-  this.parent.app.play(song);
+Chat.prototype.stopTyping = function() {
+  var typingStart = this.typing;
+  var t = now();
+
+  if (typingStart && (t - typingStart >= TYPING_TIMER)) {
+    this.emit('stop-typing');
+    this.typing = false;
+  }
 };
 
 Chat.prototype.toNode = function() {
@@ -196,6 +191,8 @@ function ActionRenderers(chat) {
     ];
   };
 
+  var room = chat.parent;
+
   this['song'] = function(action) {
     var song = action.song;
 
@@ -210,7 +207,7 @@ function ActionRenderers(chat) {
         ')'
       ]),
       h('.controls', [
-        h('button.play', { 'ev-click': chat.play.bind(chat, song) }, 'play'),
+        h('button.play', { 'ev-click': room.play.bind(room, song) }, 'play'),
         h('button.add', 'add')
       ])
     ];

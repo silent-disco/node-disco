@@ -105,11 +105,13 @@ SoundCloud.prototype.play = async function(song, skip) {
   var sc = await this.sc();
 
   return new Promise(function(resolve, reject) {
+
     sc.stream(song.streamUrl, function(sound, err) {
       if (err) {
         reject(err);
       } else {
         sound.play();
+
         self._playing = {
           song: song,
           sound: sound
