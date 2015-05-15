@@ -87,6 +87,10 @@ Child.prototype.render = function() {
   return new Tree(this);
 };
 
+Child.prototype.update = function() {
+  this.render().init();
+};
+
 function Tree(component) {
   this.component = component;
 
@@ -96,21 +100,14 @@ function Tree(component) {
 Tree.prototype.type = "Widget";
 
 Tree.prototype.init = function() {
-  console.log('init');
-
   var $el = this.component.$el;
-
   return this.update(null, $el) || $el;
 };
 
 Tree.prototype.update = function(previous, $el) {
-  console.log('update', this);
-
   var component = this.component;
 
-
   if (component.dirty === false) {
-    console.log('update skip - (not dirty)', this);
     return;
   }
 
@@ -124,8 +121,6 @@ Tree.prototype.update = function(previous, $el) {
   component.dirty = false;
 
   if (component.$el !== $el) {
-    console.log('update replace', this);
-
     return component.$el;
   }
 };

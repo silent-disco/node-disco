@@ -22,15 +22,11 @@ domReady(function() {
 
   var app = new App('body', config);
 
+  app.on('changed', function(component) {
+    raf(function() {
+      component.update();
+    });
+  });
+
   app.run();
-
-  function redraw() {
-    if (app.dirty) {
-      app.update();
-    }
-
-    raf(redraw);
-  }
-
-  raf(redraw);
 });

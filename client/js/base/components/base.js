@@ -34,12 +34,25 @@ Base.prototype.render = function() {
  * Notify the component that it or any of its
  * children changed.
  */
-Base.prototype.changed = function() {
-  this.dirty = true;
+Base.prototype.changed = function(child) {
 
-  if (this.parent) {
-    this.parent.changed();
+  var component = child || this;
+
+  if (component === this) {
+    this.dirty = true;
   }
 
-  this.emit('changed');
+  // emit changed event
+  this.emit('changed', component);
+
+  if (this.parent) {
+    // bubble up the changed trigger
+    this.parent.changed(component);
+  }
 };
+
+
+/**
+ * Update the given component
+ */
+Base.prototype.update = function() { };
