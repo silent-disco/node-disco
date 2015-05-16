@@ -2,17 +2,17 @@ var inherits = require('inherits');
 
 var h = require('virtual-dom/h');
 
-var on = require('../../util/on');
+var on = require('../util/on');
 
-var Page = require('../../base/components/page');
+var Page = require('../base/components/page');
 
-var Notifications = require('../../notifications');
+var Notifications = require('../notifications');
 
-var Chat = require('./chat');
+var Chat = require('./room/chat');
 
-var UsersList = require('./users');
+var UsersList = require('./room/users');
 
-var PlayerControls = require('./player-controls');
+var PlayerControls = require('./room/player-controls');
 
 
 function RoomPage(app) {
@@ -215,7 +215,7 @@ RoomPage.prototype.toNode = function() {
 
   return this.renderPage([
     h('.page-menu', [
-      h('a.entry.icon-notifications' + notificationsActive, {
+      h('a.entry.icon-bell' + notificationsActive, {
         href: '#',
         title: 'toggle desktop notifications',
         'ev-click': this.toggleNotifications.bind(this)

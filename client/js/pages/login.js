@@ -2,7 +2,7 @@ var inherits = require('inherits');
 
 var h = require('virtual-dom/h');
 
-var Page = require('../../base/components/page');
+var Page = require('../base/components/page');
 
 
 function LoginPage(app) {
