@@ -35,7 +35,7 @@ function App($parent, config) {
 
   // pages
   this.loginPage = new LoginPage(this);
-  this.roomPage = new RoomPage(this);
+  this.roomPage = new RoomPage(this, this.socket, this.player);
 
   this.activePage = null;
 

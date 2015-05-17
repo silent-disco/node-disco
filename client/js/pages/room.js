@@ -8,31 +8,29 @@ var Page = require('../base/components/page');
 
 var Notifications = require('../notifications');
 
-var Chat = require('./room/chat');
+var ChatWidget = require('./room/chat-widget');
+
+var PlayerWidget = require('./room/player-widget');
 
 var UsersList = require('./room/users');
 
-var PlayerControls = require('./room/player-controls');
 
-
-function RoomPage(app) {
+function RoomPage(app, socket, player) {
   Page.call(this, 'room', app);
 
   this.notifications = new Notifications(app);
 
-  this.player = app.player;
+  this.player = player;
 
-  this.socket = app.socket;
+  this.socket = socket;
 
+  this.chatWidget = new ChatWidget(this);
 
-  this.chat = new Chat(this);
+  this.playerWidget = new PlayerWidget(this, player);
 
   this.users = new UsersList(this);
 
-  this.playerControls = new PlayerControls(this);
-
-
-  on(this.chat, {
+  on(this.chatWidget, {
     'start-typing': this.startTyping,
     'stop-typing': this.stopTyping,
     'submit': this.sendMessage
@@ -49,12 +47,12 @@ function RoomPage(app) {
   // user typing information
   this.socket.on('user-typing', function(data) {
 
-    this.chat.addTyping(data.user);
+    this.chatWidget.addTyping(data.user);
   }.bind(this));
 
   this.socket.on('user-stopped-typing', function (data) {
 
-    this.chat.removeTyping(data.user);
+    this.chatWidget.removeTyping(data.user);
   }.bind(this));
 
 
@@ -151,8 +149,7 @@ RoomPage.prototype.sendMessage = function(text) {
 
 RoomPage.prototype.checkSong = async function(text) {
 
-  var player = this.player,
-      song = await player.fetchInfo(text);
+  var song = await this.player.fetchInfo(text);
 
   if (song) {
 
@@ -165,10 +162,13 @@ RoomPage.prototype.checkSong = async function(text) {
 };
 
 RoomPage.prototype.play = async function(song) {
+  console.log('play!');
+
   return this.player.play(song);
 };
 
 RoomPage.prototype.stop = function() {
+  console.log('stop!');
   this.player.stop();
 };
 
@@ -181,7 +181,7 @@ RoomPage.prototype.stopTyping = function() {
 };
 
 RoomPage.prototype.addAction = function(action) {
-  return this.chat.addAction(action);
+  return this.chatWidget.addAction(action);
 };
 
 RoomPage.prototype.log = function(text) {
@@ -221,8 +221,8 @@ RoomPage.prototype.toNode = function() {
         'ev-click': this.toggleNotifications.bind(this)
       })
     ]),
-    this.playerControls.render(),
-    this.chat.render(),
+    this.playerWidget.render(),
+    this.chatWidget.render(),
     this.users.render()
   ]);
 };

@@ -12,7 +12,7 @@ describe('player/soundcloud', function() {
   });
 
 
-  var soundCloud = new SoundCloud('soundcloud', config);
+  var soundCloud = new SoundCloud(config);
 
 
   describe('isSong', function() {

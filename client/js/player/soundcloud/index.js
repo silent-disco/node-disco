@@ -1,6 +1,11 @@
-var transform = require('lodash/object/transform'),
+var inherits = require('inherits');
+
+var assign = require('lodash/object/assign'),
+    transform = require('lodash/object/transform'),
     get = require('lodash/object/get'),
     set = require('lodash/object/set');
+
+var Emitter = require('events');
 
 var Promise = require('promise');
 
@@ -31,9 +36,7 @@ function extractSong(data) {
   });
 }
 
-function SoundCloud(id, config) {
-
-  this.id = id;
+function SoundCloud(config) {
 
   this.sc = function() {
     return loadSC().then(function(sc) {
@@ -45,6 +48,8 @@ function SoundCloud(id, config) {
     });
   };
 }
+
+inherits(SoundCloud, Emitter);
 
 module.exports = SoundCloud;
 
@@ -88,43 +93,110 @@ SoundCloud.prototype.fetchInfo = async function(url) {
 };
 
 
+SoundCloud.prototype.changed = function(status) {
+
+  if (status) {
+    this._status = assign({}, this._status, status);
+  } else {
+    this.status = status;
+  }
+
+  this.emit('update', this._status);
+};
+
+
 /**
  * Play a song after skipping the given amount of time.
  *
  * @param {Song} song
- * @param {Number} [skip=0]
+ * @param {Number} [position=0]
  *
  * @return {Promise<Sound>}
  */
-SoundCloud.prototype.play = async function(song, skip) {
+SoundCloud.prototype.play = async function(song, position) {
 
-  var self = this;
+  var playing = this._status;
 
-  await this.stop();
+  if (playing) {
+    await this.stop();
+  }
+
+  var sound = await this.createStream(song);
+
+  this.changed({
+    song: song,
+    sound: sound,
+    position: 0,
+    playState: 'stopped'
+  });
+
+  if (position) {
+    await this._skipTo(position);
+  }
+
+  return this._play(sound, position);
+};
+
+SoundCloud.prototype.updateLoading = function(position) {
+  this.changed({
+    loaded: position
+  });
+};
+
+SoundCloud.prototype.updatePlaying = function(position) {
+  this.changed({
+    position: position
+  });
+};
+
+SoundCloud.prototype.createStream = async function(song) {
 
   var sc = await this.sc();
 
+  var self = this;
+
+  var streamOptions = {
+    whileloading: function() {
+      self.updateLoading(this.duration);
+    },
+    whileplaying: function() {
+      self.updatePlaying(this.position);
+    },
+    onfinish: function() {
+      console.log('onfinish');
+      // self.setFinished();
+    }
+  };
+
   return new Promise(function(resolve, reject) {
 
-    sc.stream(song.streamUrl, function(sound, err) {
+    sc.stream(song.streamUrl, streamOptions, function(sound, err) {
       if (err) {
         reject(err);
       } else {
-        sound.play();
-
-        self._playing = {
-          song: song,
-          sound: sound
-        };
-
         resolve(sound);
       }
     });
   });
 };
 
+SoundCloud.prototype._play = function(sound, position) {
+
+  if (position !== undefined) {
+    sound.setPosition(position);
+  }
+
+  sound.play();
+
+  this.changed({
+    playState: 'playing'
+  });
+
+  return sound;
+};
+
 SoundCloud.prototype.isPlaying = function() {
-  return this._playing;
+  return this._status;
 };
 
 /**
@@ -133,7 +205,7 @@ SoundCloud.prototype.isPlaying = function() {
  * @return {Promise<Song>} the song that got stopped
  */
 SoundCloud.prototype.stop = async function() {
-  var playing = this._playing,
+  var playing = this._status,
       song,
       sound,
       result;
@@ -150,7 +222,7 @@ SoundCloud.prototype.stop = async function() {
     sound.stop();
   }
 
-  this._playing = null;
+  this.changed(null);
 
   return result;
 };

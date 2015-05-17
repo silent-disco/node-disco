@@ -1,6 +1,8 @@
 var inherits = require('inherits');
 
-var map = require('lodash/collection/map');
+var assign = require('lodash/object/assign'),
+    forEach = require('lodash/collection/forEach'),
+    map = require('lodash/collection/map');
 
 var Emitter = require('events');
 
@@ -9,15 +11,29 @@ var SoundCloud = require('./soundcloud');
 
 function Player(config) {
 
-  this.adapters = {
-    'soundcloud': new SoundCloud('soundcloud', config)
-  };
-
+  this.setAdapters({
+    'soundcloud': new SoundCloud(config)
+  });
 }
 
 inherits(Player, Emitter);
 
 module.exports = Player;
+
+Player.prototype.setAdapters = function(adapters) {
+
+  this.adapters = assign({}, adapters);
+
+  var self = this;
+
+  forEach(this.adapters, function(adapter, id) {
+    adapter.id = id;
+
+    adapter.on('update', function(status) {
+      self.emit('update', status);
+    });
+  });
+};
 
 Player.prototype.getAdapter = function(song) {
   return this.adapters[song.adapter];
@@ -27,13 +43,21 @@ Player.prototype.getAdapter = function(song) {
 Player.prototype.changed = function(status) {
   this.status = status;
 
-  this.emit('changed', status);
+  this.emit('update', status);
 };
 
 Player.prototype.play = async function(song) {
 
-  if (!song && this.status) {
-    song = this.status.song;
+  var currentSong = this.getCurrentSong();
+
+  if (currentSong) {
+    if (song) {
+      if (song.uri !== currentSong.uri) {
+        await this.stop();
+      }
+    } else {
+      song = currentSong;
+    }
   }
 
   if (!song) {
@@ -45,10 +69,26 @@ Player.prototype.play = async function(song) {
   await adapter.play(song);
 
   this.changed({
-    mode: 'playing',
+    playState: 'playing',
     song: song,
-    progress: 0
+    position: 0
   });
+};
+
+Player.prototype.stop = async function() {
+
+  var song = this.getCurrentSong();
+
+  if (!song) {
+    return;
+  }
+
+  var adapter = this.getAdapter(song);
+  await adapter.stop();
+};
+
+Player.prototype.getCurrentSong = function() {
+  return this.status && this.status.song;
 };
 
 Player.prototype.stop = async function() {
@@ -66,7 +106,7 @@ Player.prototype.stop = async function() {
   await adapter.stop();
 
   this.changed({
-    mode: 'stopped',
+    playState: 'stopped',
     song: song
   });
 };

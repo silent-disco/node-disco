@@ -18,6 +18,5 @@ mkdir -p ../lib/redis/data
 Run the container:
 
 ```
-(cd ../lib/redis && docker run -p 6379:6379 -v $(pwd)/data:/data -d redis:2.6 redis-server \
-    --appendonly yes)
+(cd ../lib/redis && docker run -p 6379:6379 -v $(pwd)/data:/data -d redis:2.6 redis-server --appendonly yes)
 ```
