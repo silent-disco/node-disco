@@ -93,15 +93,15 @@ SoundCloud.prototype.fetchInfo = async function(url) {
 };
 
 
-SoundCloud.prototype.changed = function(status) {
+SoundCloud.prototype.changed = function(current) {
 
-  if (status) {
-    this._status = assign({}, this._status, status);
+  if (current) {
+    this._current = assign({}, this._current, current);
   } else {
-    this.status = status;
+    this._current = current;
   }
 
-  this.emit('update', this._status);
+  this.emit('update', this._current);
 };
 
 
@@ -115,31 +115,54 @@ SoundCloud.prototype.changed = function(status) {
  */
 SoundCloud.prototype.play = async function(song, position) {
 
-  var playing = this._status;
-
-  if (playing) {
+  if (this.isPlaying()) {
     await this.stop();
   }
 
-  var sound = await this.createStream(song);
+  var current = this._current;
+
+  var sound;
+
+  // make sure we use the current song / position
+  // data if nothing is provided by the caller
+  if (current) {
+
+    if (!song) {
+      song = current.song;
+    }
+
+    if (!position) {
+      position = current.position;
+    }
+
+    // make sure we reuse the existing sound object
+    if (song === current.song) {
+      sound = current.sound;
+    }
+  }
+
+  position = position || 0;
+
+  sound = sound || await this.createStream(song);
 
   this.changed({
     song: song,
     sound: sound,
-    position: 0,
-    playState: 'stopped'
+    position: position
   });
 
-  if (position) {
-    await this._skipTo(position);
-  }
 
-  return this._play(sound, position);
+  // skip to position
+  await this._skipTo(sound, position);
+
+  // play
+  return this._play(sound);
 };
 
 SoundCloud.prototype.updateLoading = function(position) {
   this.changed({
-    loaded: position
+    playState: 'loading',
+    position: position
   });
 };
 
@@ -153,24 +176,9 @@ SoundCloud.prototype.createStream = async function(song) {
 
   var sc = await this.sc();
 
-  var self = this;
-
-  var streamOptions = {
-    whileloading: function() {
-      self.updateLoading(this.duration);
-    },
-    whileplaying: function() {
-      self.updatePlaying(this.position);
-    },
-    onfinish: function() {
-      console.log('onfinish');
-      // self.setFinished();
-    }
-  };
-
   return new Promise(function(resolve, reject) {
 
-    sc.stream(song.streamUrl, streamOptions, function(sound, err) {
+    sc.stream(song.streamUrl, function(sound, err) {
       if (err) {
         reject(err);
       } else {
@@ -180,23 +188,65 @@ SoundCloud.prototype.createStream = async function(song) {
   });
 };
 
-SoundCloud.prototype._play = function(sound, position) {
+SoundCloud.prototype._skipTo = async function(sound, position) {
 
-  if (position !== undefined) {
-    sound.setPosition(position);
-  }
+  var self = this;
 
-  sound.play();
+  this.changed({
+    playState: 'loading'
+  });
+
+  return new Promise(function(resolve, reject) {
+
+    function updateLoading() {
+      self.changed({
+        loaded: sound.duration
+      });
+
+      if (sound.duration >= position) {
+        sound.setPosition(position);
+        resolve(sound);
+      }
+    }
+
+    sound.load({
+      whileplaying: null,
+      whileloading: updateLoading,
+      onstop: function() {
+        console.log('SOUND stop', this);
+      },
+      onfinish: function() {
+        console.log('SOUND finish', this);
+      }
+    });
+
+    updateLoading();
+  });
+};
+
+SoundCloud.prototype._play = function(sound) {
 
   this.changed({
     playState: 'playing'
   });
 
+  function updatePlaying() {
+    this.changed({
+      position: sound.position
+    });
+  }
+
+  sound.play({
+    whileloading: null,
+    whileplaying: updatePlaying.bind(this)
+  });
+
+  console.log(sound);
   return sound;
 };
 
 SoundCloud.prototype.isPlaying = function() {
-  return this._status;
+  return this._current && this._current.playState === 'playing';
 };
 
 /**
@@ -205,24 +255,29 @@ SoundCloud.prototype.isPlaying = function() {
  * @return {Promise<Song>} the song that got stopped
  */
 SoundCloud.prototype.stop = async function() {
-  var playing = this._status,
+  var current = this._current,
       song,
       sound,
       result;
 
-  if (playing) {
-    song = playing.song;
-    sound = playing.sound;
+  if (current) {
+    song = current.song;
+    sound = current.sound;
 
     result = {
       position: sound.position,
       song: song
     };
 
-    sound.stop();
+    sound.stop({
+      whileplaying: null,
+      whileloading: null
+    });
   }
 
-  this.changed(null);
+  this.changed({
+    playState: 'stopped'
+  });
 
   return result;
 };

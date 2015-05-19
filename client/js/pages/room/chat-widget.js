@@ -18,6 +18,7 @@ var now = require('../../util/now');
 
 var getUserColor = require('./util').getUserColor;
 
+var formatDuration = require('../../util/format-duration');
 var extractUrls = require('../../util/extract-urls');
 var extractEmojis = require('../../util/extract-emojis');
 
@@ -203,11 +204,11 @@ function ActionRenderers(chat) {
         ' - ',
         h('a', { href: song.artist.permalinkUrl, target: '_blank' }, song.artist.name),
         ' (',
-        h('span.duration', String(song.duration)),
+        h('span.duration', formatDuration(song.duration)),
         ')'
       ]),
       h('.controls', [
-        h('button.play', { 'ev-click': room.play.bind(room, song) }, 'play'),
+        h('button.play', { 'ev-click': room.play.bind(room, song, 0) }, 'play'),
         h('button.add', 'add')
       ])
     ];

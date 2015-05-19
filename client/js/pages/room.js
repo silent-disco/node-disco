@@ -161,14 +161,11 @@ RoomPage.prototype.checkSong = async function(text) {
   }
 };
 
-RoomPage.prototype.play = async function(song) {
-  console.log('play!');
-
-  return this.player.play(song);
+RoomPage.prototype.play = async function(song, position) {
+  return this.player.play(song, position);
 };
 
 RoomPage.prototype.stop = function() {
-  console.log('stop!');
   this.player.stop();
 };
 

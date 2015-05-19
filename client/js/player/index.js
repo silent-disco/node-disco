@@ -29,9 +29,7 @@ Player.prototype.setAdapters = function(adapters) {
   forEach(this.adapters, function(adapter, id) {
     adapter.id = id;
 
-    adapter.on('update', function(status) {
-      self.emit('update', status);
-    });
+    adapter.on('update', self.changed.bind(self));
   });
 };
 
@@ -46,7 +44,7 @@ Player.prototype.changed = function(status) {
   this.emit('update', status);
 };
 
-Player.prototype.play = async function(song) {
+Player.prototype.play = async function(song, position) {
 
   var currentSong = this.getCurrentSong();
 
@@ -66,13 +64,7 @@ Player.prototype.play = async function(song) {
 
   var adapter = this.getAdapter(song);
 
-  await adapter.play(song);
-
-  this.changed({
-    playState: 'playing',
-    song: song,
-    position: 0
-  });
+  await adapter.play(song, position);
 };
 
 Player.prototype.stop = async function() {
@@ -104,11 +96,6 @@ Player.prototype.stop = async function() {
   var adapter = this.getAdapter(song);
 
   await adapter.stop();
-
-  this.changed({
-    playState: 'stopped',
-    song: song
-  });
 };
 
 Player.prototype.fetchInfo = async function(identifier) {

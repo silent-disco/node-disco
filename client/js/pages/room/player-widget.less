@@ -29,6 +29,12 @@
     .bar {
       width: 100%;
       padding: 0 10px;
+
+      .i {
+        padding: 5px 0;
+        cursor: pointer;
+        position: relative;
+      }
     }
   }
 
@@ -38,18 +44,20 @@
   }
 }
 
+@meter-border-radius: 4px;
+
 .meter {
   height: 4px;
   position: relative;
 
   background: #DDD;
 
-  border-radius: 4px;
+  border-radius: @meter-border-radius;
 
   > span {
     display: block;
     height: 100%;
-    border-radius: 20px 8px 8px 20px;
+    border-radius: @meter-border-radius;
     background-color: rgb(43,194,83);
     background-image: linear-gradient(
       center bottom,
@@ -81,10 +89,74 @@
       );
       z-index: 1;
       background-size: 50px 50px;
-      animation: move 2s linear infinite;
+      animation: progress 2s linear infinite;
 
-      border-radius: 20px 8px 8px 20px;
+      border-radius: @meter-border-radius;
       overflow: hidden;
     }
+  }
+
+  &.animate > span:after,
+  &.animate > span > span {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background-image:
+      -webkit-gradient(linear, 0 0, 100% 100%,
+        color-stop(.25, rgba(255, 255, 255, .2)),
+        color-stop(.25, transparent), color-stop(.5, transparent),
+        color-stop(.5, rgba(255, 255, 255, .2)),
+        color-stop(.75, rgba(255, 255, 255, .2)),
+        color-stop(.75, transparent), to(transparent)
+     );
+    background-image:
+      -moz-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, .2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, .2) 50%,
+        rgba(255, 255, 255, .2) 75%,
+        transparent 75%,
+        transparent
+      );
+
+    z-index: 1;
+
+    background-size: 50px 50px;
+    animation: progress 2s linear infinite;
+
+    border-radius: @meter-border-radius;
+
+    overflow: hidden;
+  }
+
+  &.animate > span:after {
+    display: none;
+  }
+}
+
+@keyframes progress {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+
+.pulse {
+  animation: pulse 1s linear infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1);
   }
 }

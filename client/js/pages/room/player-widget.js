@@ -1,23 +1,24 @@
-
 var h = require('virtual-dom/h');
 
 var inherits = require('inherits');
 
+var formatDuration = require('../../util/format-duration');
+
 var Component = require('../../base/components/child');
 
 
-function PlayerControls(parent, player) {
-  Component.call(this, parent, player);
+function PlayerWidget(parent, player) {
+  Component.call(this, parent);
 
   player.on('update', this.playerUpdate.bind(this));
 }
 
-inherits(PlayerControls, Component);
+inherits(PlayerWidget, Component);
 
-module.exports = PlayerControls;
+module.exports = PlayerWidget;
 
 
-PlayerControls.prototype.playerUpdate = function(data) {
+PlayerWidget.prototype.playerUpdate = function(data) {
   this.data = data;
 
   /*
@@ -45,14 +46,14 @@ PlayerControls.prototype.playerUpdate = function(data) {
   this.changed();
 };
 
-PlayerControls.prototype.toNode = function() {
+PlayerWidget.prototype.toNode = function() {
 
   var data = this.data;
   return h('.player-widget', data && this.renderPlayer(data));
 };
 
 
-PlayerControls.prototype.renderPlayer = function(data) {
+PlayerWidget.prototype.renderPlayer = function(data) {
 
   var roomPage = this.parent;
 
@@ -60,19 +61,29 @@ PlayerControls.prototype.renderPlayer = function(data) {
 
   var stopped = playState === 'stopped';
 
-  var animateCls = playState === 'loading' ? '.animate' : '';
+  var buttonCls = playState === 'loading' ? '.pulse' : '';
+
+  var meterCls = playState === 'loading' ? '.striped' : '';
 
   var duration = data.song.duration;
 
-  var position = (playState === 'loading' ? data.loaded : data.position) || 0;
+  var position = data.position || 0;
 
   var relativePosition = Math.round(position / duration * 1000) / 10;
+
+  function meterClick(event) {
+    var percentage = (event.layerX || event.offsetX) / event.currentTarget.offsetWidth;
+
+    var position = Math.round(duration * percentage);
+
+    roomPage.play(data.song, position);
+  }
 
   return [
     h('.controls', [
       stopped ?
-        h('a.icon-play', { 'ev-click': roomPage.play.bind(roomPage, null) }) :
-        h('a.icon-stop', { 'ev-click': roomPage.stop.bind(roomPage) })
+        h('a.icon-play', { 'ev-click': roomPage.play.bind(roomPage, null, 0) }) :
+        h('a.icon-stop' + buttonCls, { 'ev-click': roomPage.stop.bind(roomPage) })
     ]),
     h('.details', [
       h('.info', [
@@ -83,8 +94,14 @@ PlayerControls.prototype.renderPlayer = function(data) {
       h('.progress', [
         h('.elapsed', formatDuration(position)),
         h('.bar', [
-          h('.meter' + animateCls, [
-            h('span', { style: { width: relativePosition + '%' } })
+          h('.i', {
+            'ev-click': meterClick
+          }, [
+            h('.meter' + meterCls, [
+              h('span', { style: { width: relativePosition + '%' } }, [
+                h('span')
+              ])
+            ])
           ])
         ]),
         h('.total', formatDuration(duration))
@@ -92,36 +109,3 @@ PlayerControls.prototype.renderPlayer = function(data) {
     ])
   ];
 };
-
-
-function padDuration(duration) {
-  if (duration < 10) {
-    return '0' + String(duration);
-  } else {
-    return String(duration);
-  }
-}
-
-function formatDuration(ms) {
-
-  var s = Math.round(ms / 1000);
-
-  var seconds = s % 60;
-
-  var m = (s - seconds) / 60;
-
-  var minutes = m % 60;
-
-  var hours = (m - minutes) / 60;
-
-  var results = [];
-
-  if (hours > 0) {
-    results.push(hours);
-  }
-
-  results.push(padDuration(minutes));
-  results.push(padDuration(seconds));
-
-  return results.join(':');
-}
