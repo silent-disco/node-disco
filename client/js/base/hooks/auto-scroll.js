@@ -37,7 +37,3 @@ AutoScroll.prototype.hook = function(node, propertyName) {
     }
   });
 };
-
-AutoScroll.prototype.unhook = function(node, propertyName) {
-  console.log('unhook', node, propertyName);
-};
