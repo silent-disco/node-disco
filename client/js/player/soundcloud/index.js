@@ -131,13 +131,10 @@ SoundCloud.prototype.play = async function(song, position) {
       song = current.song;
     }
 
-    if (!position) {
-      position = current.position;
-    }
-
     // make sure we reuse the existing sound object
     if (song === current.song) {
       sound = current.sound;
+      position = position || current.position;
     }
   }
 
