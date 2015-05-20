@@ -115,26 +115,26 @@ SoundCloud.prototype.changed = function(current) {
  */
 SoundCloud.prototype.play = async function(song, position) {
 
-  if (this.isPlaying()) {
-    await this.stop();
-  }
-
   var current = this._current;
 
   var sound;
 
-  // make sure we use the current song / position
-  // data if nothing is provided by the caller
   if (current) {
 
+    // make sure we use the current song / position
+    // data if nothing is provided by the caller
     if (!song) {
       song = current.song;
     }
 
-    // make sure we reuse the existing sound object
-    if (song === current.song) {
+    if (current.song === song) {
+      await this.stop();
+
+      // make sure we reuse the existing sound object
       sound = current.sound;
       position = position || current.position;
+    } else {
+      await this.unload();
     }
   }
 
@@ -257,7 +257,7 @@ SoundCloud.prototype.stop = async function() {
       sound,
       result;
 
-  if (current) {
+  if (current && current.playState !== 'stopped') {
     song = current.song;
     sound = current.sound;
 
@@ -270,11 +270,33 @@ SoundCloud.prototype.stop = async function() {
       whileplaying: null,
       whileloading: null
     });
+
+    this.changed({
+      playState: 'stopped'
+    });
   }
 
-  this.changed({
-    playState: 'stopped'
-  });
-
   return result;
+};
+
+/**
+ * Unload the current internal sound object to free resources.
+ */
+SoundCloud.prototype.unload = async function() {
+
+  var current = this._current,
+      sound;
+
+  if (current) {
+    sound = current.sound;
+
+    if (sound) {
+      sound.destruct();
+
+      this.changed({
+        playState: 'stopped',
+        sound: null
+      });
+    }
+  }
 };
