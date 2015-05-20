@@ -52,7 +52,7 @@ UsersList.prototype.remove = function(user) {
 };
 
 UsersList.prototype.toNode = function() {
-    return h('div.user-list-container', [ h('ul.user-list', [ renderUsers(this.users) ]) ]);
+    return h('ul.users', [ renderUsers(this.users) ]);
 };
 
 function renderUsers(users) {

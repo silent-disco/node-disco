@@ -14,11 +14,36 @@ var Chat = require('./room/chat-widget');
 
 var Playlist = require('./room/playlist-widget');
 
-var UsersList = require('./room/users');
-
+var UsersList = require('./room/users-widget');
 
 function RoomPage(app, socket, config) {
   Page.call(this, 'room', app);
+
+  function resizeHandles() {
+    document.body.addEventListener('mousedown', function(e) {
+      var className = e.target.className;
+      var playlistWidget = document.querySelector('.playlist-widget');
+      var resizeHandle = document.querySelector('.resize-handle');
+
+
+      if (!(/resize-handle/.test(className))) {
+        return;
+      }
+
+      console.dir(resizeHandle);
+      resizeHandle.addEventListener('dragstart', function(evt) {
+        console.log('start');
+      });
+
+      resizeHandle.addEventListener('drag', function(evt) {
+        e.preventDefault();
+        console.log(evt);
+        // this.left += (evt.x - this.offsetLeft);
+      });
+    });
+  }
+
+  resizeHandles();
 
   this.notifications = new Notifications(app);
 
@@ -306,19 +331,23 @@ RoomPage.prototype.toNode = function() {
   var mutedCls = (this.player.isMuted() ? '.icon-mute' : '.icon-sound') + '.active';
 
   return this.renderPage([
-    this.users.render(),
-
-    h('.page-menu', [
-      h('a.entry' + notificationsCls, {
-        title: 'toggle desktop notifications',
-        'ev-click': this.toggleNotifications.bind(this)
-      }),
-      h('a.entry' + mutedCls, {
-        title: 'toggle sound',
-        'ev-click': this.toggleMuted.bind(this)
-      })
+    h('header.room-header', [
+      h('h1.title', 'Silent Disco'),
+      h('.page-menu', [
+        h('a.entry' + notificationsCls, {
+          title: 'toggle desktop notifications',
+          'ev-click': this.toggleNotifications.bind(this)
+        }),
+        h('a.entry' + mutedCls, {
+          title: 'toggle sound',
+          'ev-click': this.toggleMuted.bind(this)
+        })
+      ])
     ]),
-    this.playlist.render(),
-    this.chat.render()
+    h('.container', [
+      h('.playlist-widget', [ this.playlist.render(), h('.resize-handle', { draggable: true }) ]),
+      h('.chat-widget', [ this.chat.render() ]),
+      h('.users-widget', [ this.users.render() ])
+    ]),
   ]);
 };

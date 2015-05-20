@@ -3,17 +3,26 @@
 
 @font-face {
   font-family: 'disco';
-  src: url('/font/disco.eot?20463529');
-  src: url('/font/disco.eot?20463529#iefix') format('embedded-opentype'),
-       url('/font/disco.woff?20463529') format('woff'),
-       url('/font/disco.ttf?20463529') format('truetype'),
-       url('/font/disco.svg?20463529#disco') format('svg');
+  src: url('/font/disco.eot?27634511');
+  src: url('/font/disco.eot?27634511#iefix') format('embedded-opentype'),
+       url('/font/disco.woff?27634511') format('woff'),
+       url('/font/disco.ttf?27634511') format('truetype'),
+       url('/font/disco.svg?27634511#disco') format('svg');
   font-weight: normal;
   font-style: normal;
 }
+/* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
+/* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
+/*
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: 'disco';
+    src: url('../font/disco.svg?27634511#disco') format('svg');
+  }
+}
+*/
 
-[class^="icon-"]:before,
-[class*=" icon-"]:before {
+ [class^="icon-"]:before, [class*=" icon-"]:before {
   font-family: "disco";
   font-style: normal;
   font-weight: normal;

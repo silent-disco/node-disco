@@ -74,7 +74,7 @@ PlaylistWidget.prototype.playerUpdate = function(data) {
 
 PlaylistWidget.prototype.toNode = function() {
 
-  return h('.playlist-widget', [
+  return h('.playlist', [
     h('.songs', map(this.songs, this.renderSong.bind(this)))
   ]);
 };

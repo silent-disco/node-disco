@@ -2,35 +2,47 @@
 
 
 .playlist-widget {
+  order: 1;
+  height: ~"calc(100vh - 54px)";
+  border-right: solid 2px #ccc;
 
-  position: absolute;
-  bottom: 100px;
-  right: 20px;
+  .playlist {
+    display: inline-block;
+    float: left;
+  }
 
-  box-shadow: 0 0 2px 0px #000000;
-
+  .songs {
+    display: flex;
+    flex-direction: column;
+  }
 
   .song {
-
     cursor: pointer;
-
-    display: table;
-    padding: 10px;
+    width: 20em;
+    padding: 10px 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
     background: white;
+    border-bottom: solid 2px #DDD;
+    transition: all 0.25s ease;
 
-    &:not(:last-child) {
-      border-bottom: solid 1px #DDD;
+    .controls {
+      width: 26px;
     }
 
-    > * {
-      display: table-cell;
-      vertical-align: middle;
-    }
-
-    .info {
-      white-space: nowrap;
+    .details {
       overflow: hidden;
-      max-width: 250px;
+      flex: 1;
+      flex-wrap: wrap;
+
+      .info {
+        white-space: nowrap;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
     opacity: 0.6;
@@ -53,11 +65,10 @@
 
     .progress {
       display: none;
-
+      flex: 1 0 auto;
       padding-top: 10px;
 
       > * {
-        display: table-cell;
         vertical-align: middle;
         font-size: 12px;
       }
@@ -77,15 +88,14 @@
     &.active,
     &.selected {
       .progress {
-        display: table;
-        width: 100%;
+        display: flex;
+        width: 95%;
       }
     }
 
 
     .controls a {
-      font-size: 24px;
-      margin: 5px;
+      font-size: 18px;
     }
   }
 }
