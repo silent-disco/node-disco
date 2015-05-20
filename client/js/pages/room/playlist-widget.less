@@ -1,0 +1,82 @@
+@import "meter";
+
+
+.playlist-widget {
+
+  position: absolute;
+  bottom: 100px;
+  right: 20px;
+
+  box-shadow: 0 0 2px 1px #000000;
+
+
+  .song {
+
+    cursor: pointer;
+
+    display: table;
+    padding: 10px;
+    background: white;
+
+    &:not(:last-child) {
+      border-bottom: solid 1px #DDD;
+    }
+
+    > * {
+      display: table-cell;
+      vertical-align: middle;
+    }
+
+    .info {
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 250px;
+    }
+
+    &.selected,
+    &:hover {
+      background: #F2F2FF;
+    }
+
+    &.active {
+      background: #FDFBDF;
+    }
+
+    .progress {
+      display: none;
+
+      padding-top: 10px;
+
+      > * {
+        display: table-cell;
+        vertical-align: middle;
+        font-size: 12px;
+      }
+
+      .bar {
+        width: 100%;
+        padding: 0 10px;
+
+        .i {
+          padding: 5px 0;
+          cursor: pointer;
+          position: relative;
+        }
+      }
+    }
+
+    &.active,
+    &.selected {
+      .progress {
+        display: table;
+        width: 100%;
+      }
+    }
+
+
+    .controls a {
+      font-size: 24px;
+      margin: 5px;
+    }
+  }
+}

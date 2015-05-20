@@ -208,8 +208,8 @@ function ActionRenderers(chat) {
         ')'
       ]),
       h('.controls', [
-        h('button.play', { 'ev-click': room.play.bind(room, song, 0) }, 'play'),
-        h('button.add', 'add')
+        h('button.play', { 'ev-click': room.playSong.bind(room, song, 0) }, 'play'),
+        h('button.add', { 'ev-click': room.addSong.bind(room, song) }, 'add')
       ])
     ];
   };
