@@ -1,5 +1,6 @@
-var forEach = require('foreach'),
-    map = require('lodash/collection/map');
+var forEach = require('lodash/collection/forEach'),
+    map = require('lodash/collection/map'),
+    assign = require('lodash/object/assign');
 
 var uuid = require('uuid');
 
@@ -14,10 +15,10 @@ function now() {
   return new Date().getTime();
 }
 
-function makeCollection(users) {
-    return map(users, function(user) {
-        return { name: user.name, id: user.id };
-    });
+function makeCollection(obj) {
+  return map(obj, function(value) {
+    return value;
+  });
 }
 
 /**
@@ -147,6 +148,10 @@ function RoomsEndpoint(events, rooms, app) {
 
       var activeUsers = yield room.members.fetchMembers();
 
+      var songs = yield room.playlist.getAll();
+
+      var info = yield room.fetchInfo();
+
       this.socket.join(roomId);
 
       this.user = user;
@@ -156,7 +161,10 @@ function RoomsEndpoint(events, rooms, app) {
       emit(this, 'joined', {
         activeUsers: makeCollection(activeUsers),
         user: user,
-        roomId: roomId
+        roomId: roomId,
+        info: info,
+        playlist: songs,
+        time: now()
       });
 
       // echo that a person has connected
@@ -205,17 +213,17 @@ function RoomsEndpoint(events, rooms, app) {
   });
 
 
-  app.io.route('start-song', function*(song) {
+  app.io.route('start-song', function*(_, uri, position) {
 
     var roomId = this.roomId;
 
-    console.log('[rooms#%s] %s starts song', roomId, this.user.name);
+    console.log('[rooms#%s] %s starts song %s', roomId, this.user.name, uri);
 
     try {
       // get + initialize room
       var room = yield rooms.get(roomId, true);
 
-      var candidateSong = yield room.playlist.get(song);
+      var candidateSong = yield room.playlist.get(uri);
 
       if (!candidateSong) {
         return;
@@ -224,19 +232,21 @@ function RoomsEndpoint(events, rooms, app) {
 
       var info = yield room.fetchInfo();
 
-      var startTime = now();
+      var time = now();
 
       var updatedInfo = assign(info || {}, {
-        currentSong: candidateSong.id,
-        startTime: startTime
+        song: candidateSong.id,
+        position: position,
+        playState: 'playing',
+        time: time
       });
 
       yield room.updateInfo(updatedInfo);
 
       broadcast(this, 'song-started', {
         song: candidateSong,
-        startTime: startTime,
-        currentTime: now()
+        position: position,
+        time: time
       });
     } catch (e) {
       return notifyError(this, e);
@@ -244,11 +254,55 @@ function RoomsEndpoint(events, rooms, app) {
   });
 
 
-  app.io.route('add-song', function*(song) {
+  app.io.route('stop-song', function*(_, uri, position) {
 
     var roomId = this.roomId;
 
-    console.log('[rooms#%s] %s adds song', roomId, this.user.name);
+    console.log('[rooms#%s] %s stops song %s', roomId, this.user.name, uri);
+
+    try {
+      // get + initialize room
+      var room = yield rooms.get(roomId, true);
+
+      var candidateSong = yield room.playlist.get(uri);
+
+      if (!candidateSong) {
+        return;
+      }
+
+
+      var info = yield room.fetchInfo();
+
+      if (!info || info.song !== candidateSong.id) {
+        return;
+      }
+
+      var time = now();
+
+      var updatedInfo = assign(info || {}, {
+        position: position,
+        playState: 'stopped',
+        time: time
+      });
+
+      yield room.updateInfo(updatedInfo);
+
+      broadcast(this, 'song-stopped', {
+        song: candidateSong,
+        position: position,
+        time: time
+      });
+    } catch (e) {
+      return notifyError(this, e);
+    }
+  });
+
+
+  app.io.route('add-song', function*(_, song) {
+
+    var roomId = this.roomId;
+
+    console.log('[rooms#%s] %s adds song %s', roomId, this.user.name, song.uri);
 
     try {
       // retrieve room, creating it on the fly
@@ -256,7 +310,7 @@ function RoomsEndpoint(events, rooms, app) {
       var room = yield rooms.get(roomId, true);
 
       var addedSong = assign({}, song, {
-        id: uuid.v4()
+        id: song.uri || uuid.v4()
       });
 
       yield room.playlist.add(addedSong);
@@ -270,17 +324,17 @@ function RoomsEndpoint(events, rooms, app) {
   });
 
 
-  app.io.route('remove-song', function*(song) {
+  app.io.route('remove-song', function*(uri) {
 
     var roomId = this.roomId;
 
-    console.log('[rooms#%s] %s removes song', roomId, this.user.name);
+    console.log('[rooms#%s] %s removes song %s', roomId, this.user.name, uri);
 
     try {
       // retrieve room, don't care if it exists or not
       var room = yield rooms.get(roomId);
 
-      var candidateSong = yield room.playlist.get(song);
+      var candidateSong = yield room.playlist.get(uri);
 
       if (!candidateSong) {
         return;
@@ -297,25 +351,25 @@ function RoomsEndpoint(events, rooms, app) {
   });
 
 
-  app.io.route('move-song', function*(song, position, pivot) {
+  app.io.route('move-song', function*(uri, pivot, position) {
 
     var roomId = this.roomId;
 
-    console.log('[rooms#%s] %s moves song', roomId, this.user.name);
+    console.log('[rooms#%s] %s moves song %s %s %s', roomId, this.user.name, uri, position, pivot);
 
     try {
       // retrieve room, creating it on the fly
       // if it does not exist
       var room = yield rooms.get(roomId, true);
 
-      var candidateSong = yield room.playlist.get(song),
+      var candidateSong = yield room.playlist.get(uri),
           pivotSong = yield room.playlist.get(pivot);
 
       if (!candidateSong || !pivotSong) {
         return;
       }
 
-      yield room.playlist.add(song, position, pivot);
+      yield room.playlist.add(candidateSong, position, pivot);
 
       broadcast(this, 'song-moved', {
         song: candidateSong,

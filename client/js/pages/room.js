@@ -1,5 +1,7 @@
 var inherits = require('inherits');
 
+var forEach = require('lodash/collection/forEach');
+
 var h = require('virtual-dom/h');
 
 var Page = require('../base/components/page');
@@ -33,12 +35,49 @@ function RoomPage(app, socket, player) {
   this.chat.on('submit', this.sendMessage.bind(this));
 
   this.player.on('update', this.playerUpdate.bind(this));
+  this.player.on('finish', this.nextSong.bind(this));
 
   this.socket.on('message', this.channelMessage.bind(this));
 
   this.socket.on('user-joined', this.channelJoin.bind(this));
 
   this.socket.on('user-left', this.channelLeave.bind(this));
+
+  this.socket.on('joined', function(result) {
+    var playlist = this.playlist;
+
+    var status = result.info,
+        position;
+
+    forEach(result.playlist, function(song) {
+      this.addSong(song, false);
+    }, this);
+
+    if (status && status.playState === 'playing') {
+      position = result.time - status.time + status.position;
+
+      this.playSong(playlist.get(status.song), position, false);
+    }
+  }.bind(this));
+
+  this.socket.on('song-started', function(result) {
+    var song = result.song,
+        position = result.position;
+
+    this.playSong(this.playlist.get(song) || song, position, false);
+  }.bind(this));
+
+  this.socket.on('song-stopped', function(result) {
+    this.stopSong(false);
+  }.bind(this));
+
+  this.socket.on('song-added', function(result) {
+    this.addSong(result.song, false);
+  }.bind(this));
+
+  this.socket.on('song-removed', function(result) {
+    console.log('REMOVE SONG YO! ', result);
+  }.bind(this));
 
 
   // user typing information
@@ -206,25 +245,57 @@ RoomPage.prototype.checkSong = async function(text) {
   }
 };
 
-RoomPage.prototype.addSong = function(song) {
+RoomPage.prototype.addSong = function(song, emit) {
 
   var playlist = this.playlist;
 
-  if (!playlist.contains(song)) {
+  var playlistSong = playlist.get(song);
+
+  if (!playlistSong) {
+
+    if (emit !== false) {
+      this.socket.emit('add-song', song);
+    }
+
     playlist.add(song);
   }
+
+  return playlistSong || song;
 };
 
-RoomPage.prototype.playSong = async function(song, position) {
+/**
+ * Play the next after the given song
+ */
+RoomPage.prototype.nextSong = async function(song) {
+  var next = this.playlist.next(song);
+  return this.playSong(next, 0, false);
+};
+
+RoomPage.prototype.playSong = async function(song, position, emit) {
 
   // ensure song exists in playlist
-  this.addSong(song);
+  song = this.addSong(song, emit);
+
+  if (emit !== false) {
+    this.socket.emit('start-song', song.uri, position);
+  }
+
+  if (!isNaN(position)) {
+    while (position >= song.duration) {
+      position -= song.duration;
+      song = this.playlist.next(song);
+    }
+  }
 
   return this.player.play(song, position);
 };
 
-RoomPage.prototype.stopSong = function() {
-  this.player.stop();
+RoomPage.prototype.stopSong = async function(emit) {
+  var wasPlaying = await this.player.stop();
+
+  if (wasPlaying && emit !== false) {
+    this.socket.emit('stop-song', wasPlaying.song.uri, wasPlaying.position);
+  }
 };
 
 RoomPage.prototype.toNode = function() {

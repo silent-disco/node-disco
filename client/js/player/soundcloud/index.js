@@ -29,6 +29,11 @@ var songMapping = {
 };
 
 
+function now() {
+  return new Date().getTime();
+}
+
+
 function extractSong(data) {
 
   return transform(songMapping, function(result, sourceKey, targetKey) {
@@ -115,6 +120,8 @@ SoundCloud.prototype.changed = function(current) {
  */
 SoundCloud.prototype.play = async function(song, position) {
 
+  var t = now();
+
   var current = this._current;
 
   var sound;
@@ -132,7 +139,7 @@ SoundCloud.prototype.play = async function(song, position) {
 
       // make sure we reuse the existing sound object
       sound = current.sound;
-      position = position || current.position;
+      position = isNaN(position) ? current.position : position;
     } else {
       await this.unload();
     }
@@ -150,10 +157,14 @@ SoundCloud.prototype.play = async function(song, position) {
 
 
   // skip to position
-  await this._skipTo(sound, position);
+  var ready = await this._skipTo(sound, position, t);
 
   // play
-  return this._play(sound);
+  if (ready) {
+    return this._play(sound);
+  } else {
+    return null;
+  }
 };
 
 SoundCloud.prototype.updateLoading = function(position) {
@@ -185,9 +196,22 @@ SoundCloud.prototype.createStream = async function(song) {
   });
 };
 
-SoundCloud.prototype._skipTo = async function(sound, position) {
+
+/**
+ * Skip to the given position within a sound.
+ *
+ * @param  {SMSound} sound
+ * @param  {Number} position
+ * @param  {Number} [t=now()] time to compensate for during skipping
+ *
+ * @return {SMSound}
+ */
+SoundCloud.prototype._skipTo = async function(sound, position, t) {
 
   var self = this;
+
+  // start of skipping
+  t = t || now();
 
   this.changed({
     playState: 'loading'
@@ -195,13 +219,37 @@ SoundCloud.prototype._skipTo = async function(sound, position) {
 
   return new Promise(function(resolve, reject) {
 
+    function finished() {
+      var current = self._current;
+
+      self.changed({
+        playState: 'finished'
+      });
+
+      self.emit('finish', current && current.song);
+    }
+
     function updateLoading() {
+
+      // compensate skipping time
+      var n = now();
+      var delta = (n - t);
+
+      var actualPosition = position + delta;
+
+      // if we waited beyond estimated duration,
+      // finish instead of continuing to load
+      if (sound.durationEstimate && actualPosition > sound.durationEstimate) {
+        resolve(null);
+        return finished();
+      }
+
       self.changed({
         loaded: sound.duration
       });
 
-      if (sound.duration >= position) {
-        sound.setPosition(position);
+      if (sound.duration >= actualPosition) {
+        sound.setPosition(actualPosition);
         resolve(sound);
       }
     }
@@ -209,12 +257,7 @@ SoundCloud.prototype._skipTo = async function(sound, position) {
     sound.load({
       whileplaying: null,
       whileloading: updateLoading,
-      onstop: function() {
-        console.log('SOUND stop', this);
-      },
-      onfinish: function() {
-        console.log('SOUND finish', this);
-      }
+      onfinish: finished
     });
 
     updateLoading();
@@ -238,7 +281,6 @@ SoundCloud.prototype._play = function(sound) {
     whileplaying: updatePlaying.bind(this)
   });
 
-  console.log(sound);
   return sound;
 };
 
@@ -249,7 +291,8 @@ SoundCloud.prototype.isPlaying = function() {
 /**
  * Stop playing of the given song
  *
- * @return {Promise<Song>} the song that got stopped
+ * @return {Promise<Object>} the { song, position } where
+ *                           playing was stopped
  */
 SoundCloud.prototype.stop = async function() {
   var current = this._current,

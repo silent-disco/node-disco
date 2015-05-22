@@ -44,7 +44,6 @@
     "dom-delegator": "^13.1.0",
     "domready": "^1.0.8",
     "events": "^1.0.2",
-    "foreach": "^2.0.5",
     "inherits": "^2.0.1",
     "koa-generic-session": "^1.8.0",
     "koa-static-cache": "^3.1.1",

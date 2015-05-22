@@ -43,6 +43,20 @@ PlaylistWidget.prototype.add = function(song) {
 };
 
 
+PlaylistWidget.prototype.next = function(uri) {
+  var song = this.get(uri);
+
+  var idx = this.songs.indexOf(song);
+
+  var nextIdx = idx + 1;
+
+  if (nextIdx === this.songs.length) {
+    nextIdx = 0;
+  }
+
+  return this.songs[nextIdx];
+};
+
 PlaylistWidget.prototype.remove = function(song) {
 
   var actualSong = this.get(song);
@@ -118,7 +132,7 @@ PlaylistWidget.prototype.renderSong = function(song) {
   return h('.song' + songCls, { 'ev-click': this.select.bind(this, song) }, [
     h('.controls', [
       stopped ?
-        h('a.icon-play', { 'ev-click': roomPage.playSong.bind(roomPage, song, 0) }) :
+        h('a.icon-play', { 'ev-click': roomPage.playSong.bind(roomPage, song, null) }) :
         h('a.icon-stop' + buttonCls, { 'ev-click': roomPage.stopSong.bind(roomPage) })
     ]),
     h('.details', [

@@ -56,8 +56,6 @@ UsersList.prototype.toNode = function() {
 };
 
 function renderUsers(users) {
-    console.log('renderUsers', users);
-
     return map(users, function(user) {
         return h('li.user', [ h('span.rect', {style: { backgroundColor: getUserColor(user) }}), h('p.user-name', user.name) ]);
     });
