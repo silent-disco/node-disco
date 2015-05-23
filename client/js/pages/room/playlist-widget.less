@@ -7,7 +7,7 @@
   bottom: 100px;
   right: 20px;
 
-  box-shadow: 0 0 2px 1px #000000;
+  box-shadow: 0 0 2px 0px #000000;
 
 
   .song {
@@ -33,13 +33,22 @@
       max-width: 250px;
     }
 
+    opacity: 0.6;
+
     &.selected,
     &:hover {
       background: #F2F2FF;
+      opacity: 1;
     }
 
     &.active {
       background: #FDFBDF;
+      opacity: 1;
+      margin: -2px -7px;
+      padding: 17px;
+      box-shadow: 0 0 3px 0px #000000;
+      z-index: 100;
+      position: relative;
     }
 
     .progress {
