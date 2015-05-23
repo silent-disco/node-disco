@@ -65,10 +65,10 @@ module.exports = App;
 
 
 App.prototype.stateChanged = function() {
-  var newRoomId = roomFromUrl();
+  var newRoomName = roomFromUrl();
 
-  if (this.user && newRoomId !== this.roomName) {
-    roomId = newRoomId;
+  if (this.user && newRoomName !== this.roomName) {
+    this.roomName = newRoomName;
 
     this.joinRoom();
   }
