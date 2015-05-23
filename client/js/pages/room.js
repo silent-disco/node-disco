@@ -6,6 +6,8 @@ var h = require('virtual-dom/h');
 
 var Page = require('../base/components/page');
 
+var Player = require('../player');
+
 var Notifications = require('../notifications');
 
 var Chat = require('./room/chat-widget');
@@ -15,12 +17,12 @@ var Playlist = require('./room/playlist-widget');
 var UsersList = require('./room/users');
 
 
-function RoomPage(app, socket, player) {
+function RoomPage(app, socket, config) {
   Page.call(this, 'room', app);
 
   this.notifications = new Notifications(app);
 
-  this.player = player;
+  this.player = new Player(config);
 
   this.socket = socket;
 
@@ -227,6 +229,12 @@ RoomPage.prototype.toggleNotifications = function() {
   this.changed();
 };
 
+RoomPage.prototype.toggleMuted = function() {
+  this.player.toggleMuted();
+
+  this.changed();
+};
+
 RoomPage.prototype.playerUpdate = function(state) {
   this.playlist.playerUpdate(state);
 };
@@ -300,18 +308,26 @@ RoomPage.prototype.stopSong = async function(emit) {
 
 RoomPage.prototype.toNode = function() {
 
-  var notificationsActive = this.notifications.isActive() ? '.active' : '';
+  var notificationsCls = '.icon-bell' + (this.notifications.isActive() ? '.active' : '');
+
+  var mutedCls = (this.player.isMuted() ? '.icon-mute' : '.icon-sound') + '.active';
 
   return this.renderPage([
+    this.users.render(),
+
     h('.page-menu', [
-      h('a.entry.icon-bell' + notificationsActive, {
+      h('a.entry' + notificationsCls, {
         href: '#',
         title: 'toggle desktop notifications',
         'ev-click': this.toggleNotifications.bind(this)
+      }),
+      h('a.entry' + mutedCls, {
+        href: '#',
+        title: 'toggle sound',
+        'ev-click': this.toggleMuted.bind(this)
       })
     ]),
     this.playlist.render(),
-    this.chat.render(),
-    this.users.render()
+    this.chat.render()
   ]);
 };

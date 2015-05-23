@@ -7,9 +7,57 @@
   "ascent": 850,
   "glyphs": [
     {
+      "uid": "bf45c39702763f1803b550c36a0ceb12",
+      "css": "cancel",
+      "code": 59400,
+      "src": "entypo"
+    },
+    {
+      "uid": "9e1c33b6849ceb08db8acfaf02188b7d",
+      "css": "plus",
+      "code": 59398,
+      "src": "entypo"
+    },
+    {
+      "uid": "4ffa544c1a81c905f0a8a5745d8b9faa",
+      "css": "minus",
+      "code": 59397,
+      "src": "entypo"
+    },
+    {
+      "uid": "63b86fedd4ee9ad2105f54f4888e7088",
+      "css": "info",
+      "code": 59399,
+      "src": "entypo"
+    },
+    {
       "uid": "2c5335c6e56b876139d7a58ab2f4b2fe",
-      "css": "notifications",
+      "css": "bell",
       "code": 59392,
+      "src": "entypo"
+    },
+    {
+      "uid": "2f750a9be253e8e451209574336e7020",
+      "css": "mute",
+      "code": 59393,
+      "src": "entypo"
+    },
+    {
+      "uid": "ef51920c7a9bed4d87f53709db115e34",
+      "css": "sound",
+      "code": 59395,
+      "src": "entypo"
+    },
+    {
+      "uid": "cb13afd4722a849d48056540bb74c47e",
+      "css": "play",
+      "code": 59394,
+      "src": "entypo"
+    },
+    {
+      "uid": "d10920db2e79c997c5e783279291970c",
+      "css": "dots",
+      "code": 59396,
       "src": "entypo"
     }
   ]

@@ -1,5 +1,3 @@
-var io = require('socket.io-client');
-
 var inherits = require('inherits');
 
 var h = require('virtual-dom/h');
@@ -13,20 +11,17 @@ var SOCKET_DISCONNECTED = 'disconnected',
     SOCKET_RECONNECTING = 'reconnecting',
     SOCKET_CONNECTED = 'connected';
 
-var Player = require('./player');
 
-
-function App($parent, config) {
+function App($parent, config, socket) {
 
   Root.call(this, $parent);
-
-  this.player = new Player(config);
 
   // environment init
   this.config = config;
 
+  this.socket = socket;
+
   this.roomName = roomFromUrl();
-  this.socket = createSocket();
 
   // disconnected
   // connected
@@ -35,7 +30,7 @@ function App($parent, config) {
 
   // pages
   this.loginPage = new LoginPage(this);
-  this.roomPage = new RoomPage(this, this.socket, this.player);
+  this.roomPage = new RoomPage(this, socket, config);
 
   this.activePage = null;
 
@@ -129,20 +124,4 @@ function roomFromUrl() {
   }
 
   return (roomMatch && roomMatch[2]) || 'lobby';
-}
-
-/**
- * Creates a new socket.io instance.
- *
- * @return {IoSocket}
- */
-function createSocket() {
-  var split = window.location.host.split(':');
-
-  // fix websocket connection port on open shift
-  if (split[0].indexOf('rhcloud.com') !== -1) {
-    split[1] = 8443;
-  }
-
-  return io(split.join(':'));
 }

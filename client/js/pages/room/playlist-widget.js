@@ -86,7 +86,6 @@ PlaylistWidget.prototype.select = function(song) {
   this.changed();
 };
 
-
 PlaylistWidget.prototype.renderSong = function(song) {
 
   var roomPage = this.parent;
@@ -113,9 +112,13 @@ PlaylistWidget.prototype.renderSong = function(song) {
 
   songCls += ('.' + playState);
 
-  var stopped = playState === 'stopped';
+  var buttonCls;
 
-  var buttonCls = playState === 'loading' ? '.pulse' : '';
+  if (playState === 'loading') {
+    buttonCls = '.icon-dots.pulse';
+  } else {
+    buttonCls = '.icon-play';
+  }
 
   var meterCls = playState === 'loading' ? '.striped' : '';
 
@@ -131,9 +134,7 @@ PlaylistWidget.prototype.renderSong = function(song) {
 
   return h('.song' + songCls, { 'ev-click': this.select.bind(this, song) }, [
     h('.controls', [
-      stopped ?
-        h('a.icon-play', { 'ev-click': roomPage.playSong.bind(roomPage, song, null) }) :
-        h('a.icon-stop' + buttonCls, { 'ev-click': roomPage.stopSong.bind(roomPage) })
+      h('a' + buttonCls, { 'ev-click': roomPage.playSong.bind(roomPage, song, null) })
     ]),
     h('.details', [
       h('.info', [

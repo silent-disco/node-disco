@@ -5,6 +5,8 @@ var assign = require('lodash/object/assign'),
     get = require('lodash/object/get'),
     set = require('lodash/object/set');
 
+var now = require('../../util/now');
+
 var Emitter = require('events');
 
 var Promise = require('promise');
@@ -27,11 +29,6 @@ var songMapping = {
   'artist.permalinkUrl': 'user.permalink_url',
   'artist.uri': 'user.uri'
 };
-
-
-function now() {
-  return new Date().getTime();
-}
 
 
 function extractSong(data) {
@@ -276,6 +273,10 @@ SoundCloud.prototype._play = function(sound) {
     });
   }
 
+  if (this.muted) {
+    sound.mute();
+  }
+
   sound.play({
     whileloading: null,
     whileplaying: updatePlaying.bind(this)
@@ -320,6 +321,21 @@ SoundCloud.prototype.stop = async function() {
   }
 
   return result;
+};
+
+SoundCloud.prototype.setMuted = function(muted) {
+
+  this.muted = muted;
+
+  var current = this._current;
+
+  if (current && current.sound) {
+    if (muted) {
+      current.sound.mute();
+    } else {
+      current.sound.unmute();
+    }
+  }
 };
 
 /**

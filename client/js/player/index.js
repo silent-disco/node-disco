@@ -8,17 +8,41 @@ var Emitter = require('events');
 
 var SoundCloud = require('./soundcloud');
 
+var MUTED_ACTIVE = 'mutedActive';
+
 
 function Player(config) {
+
+  this.config = config;
 
   this.setAdapters({
     'soundcloud': new SoundCloud(config)
   });
+
+  this.toggleMuted(config.get(MUTED_ACTIVE, false));
 }
 
 inherits(Player, Emitter);
 
 module.exports = Player;
+
+
+Player.prototype.toggleMuted = function(value) {
+
+  var muted = value !== undefined ? value : !this.muted;
+
+  this.muted = muted;
+
+  this.config.set(MUTED_ACTIVE, muted);
+
+  forEach(this.adapters, function(adapter) {
+    adapter.setMuted(muted);
+  });
+};
+
+Player.prototype.isMuted = function() {
+  return this.muted;
+};
 
 Player.prototype.setAdapters = function(adapters) {
 
@@ -80,18 +104,23 @@ Player.prototype.play = async function(song, position) {
 };
 
 Player.prototype.stop = async function() {
+  var adapter = this.getCurrentAdapter();
 
-  var song = this.getCurrentSong();
-
-  if (!song) {
-    return;
+  if (adapter) {
+    return await adapter.stop();
   }
-
-  var adapter = this.getAdapter(song);
-
-  return await adapter.stop();
 };
 
+Player.prototype.getCurrentAdapter = function() {
+
+  var currentSong = this.getCurrentSong();
+
+  if (!currentSong) {
+    return null;
+  }
+
+  return this.getAdapter(currentSong);
+};
 
 Player.prototype.getCurrentSong = function() {
   return this.status && this.status.song;
