@@ -310,12 +310,10 @@ RoomPage.prototype.toNode = function() {
 
     h('.page-menu', [
       h('a.entry' + notificationsCls, {
-        href: '#',
         title: 'toggle desktop notifications',
         'ev-click': this.toggleNotifications.bind(this)
       }),
       h('a.entry' + mutedCls, {
-        href: '#',
         title: 'toggle sound',
         'ev-click': this.toggleMuted.bind(this)
       })
