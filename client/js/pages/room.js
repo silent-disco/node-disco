@@ -97,13 +97,6 @@ function RoomPage(app, socket, config) {
   app.on('connected', this.connected.bind(this));
 
   app.on('disconnect', this.disconnected.bind(this));
-
-  setTimeout(function() {
-    this.checkSong('https://soundcloud.com/bebetta/bebetta-at-ploetzlich-am-meer');
-    this.checkSong('https://soundcloud.com/beatverliebt-podcasts/007-bebetta');
-    this.checkSong('https://soundcloud.com/the-glitz/the-glitz-at-3000grad-festival-16082014');
-
-  }.bind(this), 2000);
 }
 
 inherits(RoomPage, Page);
