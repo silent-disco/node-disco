@@ -10,40 +10,14 @@ var Player = require('../player');
 
 var Notifications = require('../notifications');
 
-var Chat = require('./room/chat-widget');
+var Chat = require('./room/chat');
 
-var Playlist = require('./room/playlist-widget');
+var Playlist = require('./room/playlist');
 
 var UsersList = require('./room/users-widget');
 
 function RoomPage(app, socket, config) {
   Page.call(this, 'room', app);
-
-  function resizeHandles() {
-    document.body.addEventListener('mousedown', function(e) {
-      var className = e.target.className;
-      var playlistWidget = document.querySelector('.playlist-widget');
-      var resizeHandle = document.querySelector('.resize-handle');
-
-
-      if (!(/resize-handle/.test(className))) {
-        return;
-      }
-
-      console.dir(resizeHandle);
-      resizeHandle.addEventListener('dragstart', function(evt) {
-        console.log('start');
-      });
-
-      resizeHandle.addEventListener('drag', function(evt) {
-        e.preventDefault();
-        console.log(evt);
-        // this.left += (evt.x - this.offsetLeft);
-      });
-    });
-  }
-
-  resizeHandles();
 
   this.notifications = new Notifications(app);
 
@@ -51,9 +25,9 @@ function RoomPage(app, socket, config) {
 
   this.socket = socket;
 
-  this.chat = new Chat(this);
-
   this.playlist = new Playlist(this);
+
+  this.chat = new Chat(this, this.playlist);
 
   this.users = new UsersList(this);
 
@@ -254,7 +228,15 @@ RoomPage.prototype.toggleMuted = function() {
 };
 
 RoomPage.prototype.playerUpdate = function(state) {
+  this.playing = state;
+
   this.playlist.playerUpdate(state);
+
+  this.chat.playerUpdate(state);
+};
+
+RoomPage.prototype.getPlaying = function() {
+  return this.playing;
 };
 
 RoomPage.prototype.checkSong = async function(text) {
@@ -266,7 +248,7 @@ RoomPage.prototype.checkSong = async function(text) {
     this.addAction({
       user: this.user,
       type: 'song',
-      song: song
+      song: this.playlist.get(song) || song
     });
   }
 };
@@ -277,6 +259,8 @@ RoomPage.prototype.addSong = function(song, emit) {
 
   var playlistSong = playlist.get(song);
 
+  var playing = this.getPlaying();
+
   if (!playlistSong) {
 
     if (emit !== false) {
@@ -284,6 +268,10 @@ RoomPage.prototype.addSong = function(song, emit) {
     }
 
     playlist.add(song);
+
+    if (emit !== false && playing.song === song) {
+      this.socket.emit('start-song', song.uri, playing.position);
+    }
   }
 
   return playlistSong || song;
@@ -293,23 +281,27 @@ RoomPage.prototype.addSong = function(song, emit) {
  * Play the next after the given song
  */
 RoomPage.prototype.nextSong = async function(song) {
-  var next = this.playlist.next(song);
+  var next = this.playlist.getNext(song);
   return this.playSong(next, 0, false);
 };
 
 RoomPage.prototype.playSong = async function(song, position, emit) {
 
-  // ensure song exists in playlist
-  song = this.addSong(song, emit);
+  var playlist = this.playlist;
 
-  if (emit !== false) {
-    this.socket.emit('start-song', song.uri, position);
+  var playlistSong = playlist.get(song);
+
+  // emit only if song is in playlist
+  if (playlistSong && emit !== false) {
+    this.socket.emit('start-song', playlistSong.uri, position);
   }
+
+  song = playlistSong || song;
 
   if (!isNaN(position)) {
     while (position >= song.duration) {
       position -= song.duration;
-      song = this.playlist.next(song);
+      song = this.playlist.getNext(song);
     }
   }
 

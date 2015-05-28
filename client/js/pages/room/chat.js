@@ -18,20 +18,34 @@ var now = require('../../util/now');
 
 var getUserColor = require('./util').getUserColor;
 
-var formatDuration = require('../../util/format-duration');
 var extractUrls = require('../../util/extract-urls');
 var extractEmojis = require('../../util/extract-emojis');
 
+var PlayerWidget = require('./player-widget');
 
 var TYPING_TIMER = 800;
 
 
-function Chat(parent) {
-  Component.call(this, parent);
+var entryMap = {
+  log: LogEntry,
+  song: SongEntry,
+  __default: DefaultEntry
+};
 
-  this.actions = [];
 
-  this.actionRenderers = new ActionRenderers(this);
+function Chat(room) {
+  Component.call(this, room);
+
+  this.entries = [];
+  this.selected = null;
+
+  // sent from player widgets
+  this.on('play-song', function(song, position) {
+    room.playSong(song, position);
+  });
+
+  // sent from player widgets
+  this.on('select', this.select.bind(this));
 }
 
 inherits(Chat, Component);
@@ -40,14 +54,16 @@ module.exports = Chat;
 
 Chat.prototype.removeTyping = function(user) {
 
-  var idx = findIndex(this.actions, function(a) {
-    return a.type === 'typing' && a.user.id === user.id;
+  var idx = findIndex(this.entries, function(entry) {
+    var action = entry.action;
+
+    return action.type === 'typing' && action.user.id === user.id;
   });
 
   var wasTyping = idx !== -1;
 
   if (wasTyping) {
-    this.actions.splice(idx, 1);
+    this.entries.splice(idx, 1);
 
     this.changed();
   }
@@ -66,6 +82,28 @@ Chat.prototype.addTyping = function(user) {
   this.changed();
 };
 
+Chat.prototype.select = function(entry) {
+
+  var previousSelection = this.selected;
+
+  if (previousSelection) {
+    previousSelection.setSelected(false);
+  }
+
+  entry.setSelected(true);
+
+  this.selected = entry;
+};
+
+Chat.prototype.playerUpdate = function(status) {
+
+  this.entries.forEach(function(entry) {
+    if (entry && entry.song === status.song) {
+      entry.setPlaying(status);
+    }
+  });
+};
+
 Chat.prototype.addAction = function(action, options) {
 
   options = options || {};
@@ -78,7 +116,9 @@ Chat.prototype.addAction = function(action, options) {
 
   action = assign({ fade: fade }, action);
 
-  this.actions.push(action);
+  var Entry = entryMap[action.type] || entryMap.__default;
+
+  this.entries.push(new Entry(this, action));
 
   this.changed();
 };
@@ -147,73 +187,10 @@ Chat.prototype.toNode = function() {
 };
 
 Chat.prototype.renderActions = function() {
-  var actions = this.actions;
-
-  var actionRenderers = this.actionRenderers;
-
-  return map(actions, function(action) {
-
-    var type = action.type;
-
-    var actionSelector = '.action.' + action.type;
-
-    if (action.fade) {
-      actionSelector += '.fade';
-    }
-
-    var renderer = actionRenderers[type] || actionRenderers['default'];
-
-    return h(actionSelector, renderer(action));
+  return map(this.entries, function(entry) {
+    return entry.render();
   });
 };
-
-
-function ActionRenderers(chat) {
-
-  this['default'] = function(action) {
-
-    var user = action.user;
-
-    return [
-      h('span.author', [
-        h('span.name', {
-          style: {
-            color: getUserColor(user)
-          }
-        }, action.user.name)
-      ]),
-      h('span.body', renderText(action.text))
-    ];
-  };
-
-  this['log'] = function(action) {
-    return [
-      h('span.body', renderText(action.text))
-    ];
-  };
-
-  var room = chat.parent;
-
-  this['song'] = function(action) {
-    var song = action.song;
-
-    return [
-      h('img.artwork', { src: song.pictureUrl }),
-      h('.summary', [
-        h('a', { href: song.permalinkUrl, target: '_blank' }, song.name),
-        ' - ',
-        h('a', { href: song.artist.permalinkUrl, target: '_blank' }, song.artist.name),
-        ' (',
-        h('span.duration', formatDuration(song.duration)),
-        ')'
-      ]),
-      h('.controls', [
-        h('button.play', { 'ev-click': room.playSong.bind(room, song, 0) }, 'play'),
-        h('button.add', { 'ev-click': room.addSong.bind(room, song) }, 'add')
-      ])
-    ];
-  };
-}
 
 function renderText(text) {
 
@@ -230,3 +207,75 @@ function renderText(text) {
     }
   });
 }
+
+function ActionEntry(parent, action) {
+  Component.call(this, parent);
+
+  this.action = action;
+
+  this.setSelected = function(selected) {
+    this.selected = selected;
+  };
+
+  this.renderBody = function() {
+    throw new Error('subclass responsibility');
+  };
+
+  this.toNode = function() {
+
+    var actionSelector = '.action.' + action.type;
+
+    if (action.fade) {
+      actionSelector += '.fade';
+    }
+
+    return h(actionSelector, this.renderBody());
+  };
+}
+
+inherits(ActionEntry, Component);
+
+
+function LogEntry(parent, action) {
+  ActionEntry.call(this, parent, action);
+
+  this.renderBody = function() {
+    return [
+      h('span.body', renderText(action.text))
+    ];
+  };
+}
+
+inherits(LogEntry, ActionEntry);
+
+
+function DefaultEntry(parent, action) {
+  ActionEntry.call(this, parent, action);
+
+  this.renderBody = function() {
+
+    var user = action.user;
+
+    return [
+      h('span.author', [
+        h('span.name', {
+          style: {
+            color: getUserColor(user)
+          }
+        }, user.name)
+      ]),
+      h('span.body', renderText(action.text))
+    ];
+  };
+}
+
+inherits(DefaultEntry, ActionEntry);
+
+
+function SongEntry(parent, action) {
+  PlayerWidget.call(this, parent, action.song);
+
+  this.action = action;
+}
+
+inherits(SongEntry, PlayerWidget);

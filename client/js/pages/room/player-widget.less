@@ -1,0 +1,125 @@
+@import "meter";
+
+
+.player-widget {
+
+  cursor: pointer;
+
+  display: table;
+  padding: 10px;
+  background: white;
+
+  &:not(:last-child) {
+    border-bottom: solid 1px #DDD;
+  }
+
+  > * {
+    display: table-cell;
+    vertical-align: middle;
+  }
+
+  .info {
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 250px;
+  }
+
+  opacity: 0.6;
+
+  &.selected,
+  &:hover {
+    background: #F2F2FF;
+    opacity: 1;
+  }
+
+  &.active:not(.selected),
+  &:hover {
+    .artwork {
+      display: none;
+    }
+
+    .controls {
+      display: block;
+    }
+  }
+
+  &.active {
+    background: #FDFBDF;
+    opacity: 1;
+    box-shadow: 0 0 3px 0px #000000;
+    z-index: 100;
+    position: relative;
+  }
+
+  .progress {
+    display: none;
+
+    padding-top: 10px;
+
+    > * {
+      display: table-cell;
+      vertical-align: middle;
+      font-size: 12px;
+    }
+
+    .bar {
+      width: 100%;
+      padding: 0 10px;
+
+      .i {
+        padding: 5px 0;
+        cursor: pointer;
+        position: relative;
+      }
+    }
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .controls,
+  .artwork {
+    width: 30px;
+    height: 30px;
+
+    display: inline-block;
+    margin-right: 10px;
+  }
+
+  .controls {
+    display: none;
+
+    text-align: center;
+  }
+
+  .controls a {
+    font-size: 24px;
+  }
+
+  .artwork img {
+    max-width: 100%;
+    border-radius: 3px;
+    margin-right: 10px;
+  }
+
+  &.active,
+  &.selected {
+
+    .controls,
+    .artwork {
+      width: 45px;
+      height: 45px;
+    }
+
+    .progress {
+      display: table;
+      width: 100%;
+    }
+
+    .duration {
+      display: none;
+    }
+  }
+}
