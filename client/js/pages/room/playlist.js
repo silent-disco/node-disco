@@ -24,6 +24,27 @@ function Playlist(room) {
 
   // sent from player widgets
   this.on('select', this.select.bind(this));
+
+  function onDrop(evt) {
+    // Stops some browsers from redirecting.
+    if (evt.stopPropagation) {
+        evt.stopPropagation();
+    }
+
+    evt.preventDefault();
+
+    if (evt.target.className !== 'playlist') {
+      return;
+    }
+
+    var song = JSON.parse(evt.dataTransfer.getData('Song'));
+
+    if (!this.contains(song)) {
+      this.add(song);
+    }
+  }
+
+  window.addEventListener('drop', onDrop.bind(this));
 }
 
 inherits(Playlist, Component);
@@ -137,6 +158,7 @@ Playlist.prototype.isSelected = function(song) {
 };
 
 Playlist.prototype.toNode = function() {
+
 
   var pausedCls = this.paused ? '.paused' : '';
 

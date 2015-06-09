@@ -28,6 +28,12 @@ var gulp = require('gulp'),
 
 var dest = 'public';
 
+function* gen() {
+  console.log('Alles gut!');
+}
+
+gen().next();
+
 // add custom browserify options here
 var browserifyOptions = {
   entries: ['./client/index.js'],

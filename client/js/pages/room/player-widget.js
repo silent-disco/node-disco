@@ -32,10 +32,6 @@ SongEntry.prototype.setPlaying = function(playing) {
 SongEntry.prototype.setSelected = function(selected) {
   this.selected = selected;
 
-  debugger;
-
-  console.log(this.$el);
-
   this.changed();
 };
 

@@ -8,7 +8,8 @@ var Component = require('../../base/components/child');
 
 var assign = require('lodash/object/assign'),
     findIndex = require('lodash/array/findIndex'),
-    map = require('lodash/collection/map');
+    map = require('lodash/collection/map'),
+    filter = require('lodash/collection/filter');
 
 var matchesSelector = require('matches-selector');
 
@@ -24,7 +25,6 @@ var extractEmojis = require('../../util/extract-emojis');
 var PlayerWidget = require('./player-widget');
 
 var TYPING_TIMER = 800;
-
 
 var entryMap = {
   log: LogEntry,
@@ -48,6 +48,56 @@ function Chat(room, playlist) {
 
   // sent from player widgets
   this.on('select', this.select.bind(this));
+
+  function onDragstart(evt) {
+    var target = evt.target,
+        classList = target.classList,
+        entries = this.entries,
+        playlist = this.playlist;
+
+    if (!classList.contains('song')) {
+      return;
+    }
+
+    var entry = filter(entries, function(entry) {
+      if (entry.song) {
+        return entry.$el === target;
+      }
+    })[0];
+
+    if (playlist.contains(entry.song)) {
+      evt.stopPropagation();
+      evt.preventDefault();
+      return;
+    }
+
+    evt.target.classList.add('dragging');
+
+    evt.dataTransfer.setData('Song', JSON.stringify(entry.song));
+    evt.dataTransfer.effectAllowed = 'move';
+    evt.dataTransfer.dropEffect = 'copy';
+  }
+
+  window.addEventListener('dragstart', onDragstart.bind(this));
+
+  window.addEventListener('dragover', function(e) {
+    e.preventDefault();
+  }, false);
+
+  window.addEventListener('dragenter', function(e) {
+    e.preventDefault();
+  }, false);
+
+  window.addEventListener('dragover', function(e) {
+    e.preventDefault();
+  }, false);
+
+  window.addEventListener('dragend', function(e) {
+    e.preventDefault();
+    e.target.classList.remove('dragging');
+
+  }, false);
+
 }
 
 inherits(Chat, Component);
@@ -250,7 +300,6 @@ function LogEntry(parent, action) {
 
 inherits(LogEntry, ActionEntry);
 
-
 function DefaultEntry(parent, action) {
   ActionEntry.call(this, parent, action);
 
@@ -279,6 +328,8 @@ function SongEntry(parent, action) {
   var playlist = parent.playlist;
   var song = action.song;
 
+  // songs.add(song);
+
   PlayerWidget.call(this, parent, song);
 
   this.action = action;
@@ -296,13 +347,11 @@ function SongEntry(parent, action) {
 
     var added = playlist.contains(song);
 
-    return h('.song', { 'ev-dragstart': function(event) {
-
+    return h('.song', {
+      draggable: true
     }, [
       PlayerWidget.prototype.toNode.call(this),
-      added ?
-        h('in playlist') :
-        h('button', { 'ev-click': addSong }, 'add')
+      (added ? h('in playlist') : h('button', { 'ev-click': addSong }, 'add'))
     ]);
   };
 }

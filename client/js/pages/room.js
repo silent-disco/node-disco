@@ -337,7 +337,7 @@ RoomPage.prototype.toNode = function() {
       ])
     ]),
     h('.container', [
-      h('.playlist-widget', [ this.playlist.render(), h('.resize-handle', { draggable: true }) ]),
+      h('.playlist-widget', [ this.playlist.render()]),
       h('.chat-widget', [ this.chat.render() ]),
       h('.users-widget', [ this.users.render() ])
     ]),
