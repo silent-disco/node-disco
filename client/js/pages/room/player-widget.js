@@ -32,6 +32,10 @@ SongEntry.prototype.setPlaying = function(playing) {
 SongEntry.prototype.setSelected = function(selected) {
   this.selected = selected;
 
+  debugger;
+
+  console.log(this.$el);
+
   this.changed();
 };
 
@@ -95,11 +99,13 @@ SongEntry.prototype.toNode = function() {
   }
 
   return h('.player-widget' + songCls, { 'ev-click': select }, [
-    h('.controls', [
-      h('a' + buttonCls, { 'ev-click': play })
-    ]),
-    h('a.artwork', { href: song.permalinkUrl, target: '_blank'}, [
-      h('img', { src: song.pictureUrl })
+    h('.header', [
+      h('.controls', [
+        h('a' + buttonCls, { 'ev-click': play })
+      ]),
+      h('a.artwork', { href: song.permalinkUrl, target: '_blank'}, [
+        h('img', { src: song.pictureUrl })
+      ]),
     ]),
     h('.details', [
       h('.info', [

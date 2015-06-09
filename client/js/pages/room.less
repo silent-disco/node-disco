@@ -8,6 +8,10 @@
 
 /* room page */
 
+.playlist-widget {
+  max-width: 30vw;
+}
+
 .room-page {
   .container {
     display: flex;
@@ -16,17 +20,25 @@
     height: calc(~"100vh - 55px");
   }
 
-  .room-header {
+  header {
     display: block;
     width: 100%;
-    border-bottom: 2px solid #ccc;
     max-height: 54px;
+
+    border-bottom: 1px solid #ccc;
+    box-shadow: 0 0px 4px #CCC;
+    z-index: 100;
+    position: relative;
+    background-color: rgb(251, 237, 255);
+
+    .title {
+      margin: 0.2em 0.5em;
+      display: inline-block;
+      font-size: 30px;
+      font-weight: lighter;
+    }
   }
 
-  .title {
-    margin: 0.2em 0.5em;
-    display: inline-block;
-  }
 
   .log {
     color: gray;

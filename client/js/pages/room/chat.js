@@ -33,8 +33,10 @@ var entryMap = {
 };
 
 
-function Chat(room) {
+function Chat(room, playlist) {
   Component.call(this, room);
+
+  this.playlist = playlist;
 
   this.entries = [];
   this.selected = null;
@@ -273,9 +275,36 @@ inherits(DefaultEntry, ActionEntry);
 
 
 function SongEntry(parent, action) {
-  PlayerWidget.call(this, parent, action.song);
+
+  var playlist = parent.playlist;
+  var song = action.song;
+
+  PlayerWidget.call(this, parent, song);
 
   this.action = action;
+
+  var self = this;
+
+  this.toNode = function() {
+
+    function addSong() {
+
+      console.log(self);
+
+      parent.parent.addSong(song);
+    }
+
+    var added = playlist.contains(song);
+
+    return h('.song', { 'ev-dragstart': function(event) {
+
+    }, [
+      PlayerWidget.prototype.toNode.call(this),
+      added ?
+        h('in playlist') :
+        h('button', { 'ev-click': addSong }, 'add')
+    ]);
+  };
 }
 
 inherits(SongEntry, PlayerWidget);

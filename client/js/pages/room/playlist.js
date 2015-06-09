@@ -14,7 +14,7 @@ function Playlist(room) {
   Component.call(this, room);
 
   this.songs = [];
-  this.widgets = { };
+  this.widgets = {};
   this.selected = null;
 
   // sent from player widgets

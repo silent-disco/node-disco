@@ -2,10 +2,25 @@
 
 
 .player-widget {
+  display: flex;
+
+  .controls {
+    flex-grow: 0;
+  }
+
+  .details {
+    flex-grow: 1;
+  }
+
+  > * {
+    display: inline;
+  }
+}
+
+.player-widget {
 
   cursor: pointer;
 
-  display: table;
   padding: 10px;
   background: white;
 
@@ -13,15 +28,9 @@
     border-bottom: solid 1px #DDD;
   }
 
-  > * {
-    display: table-cell;
-    vertical-align: middle;
-  }
-
   .info {
     white-space: nowrap;
     overflow: hidden;
-    max-width: 250px;
   }
 
   opacity: 0.6;
@@ -46,9 +55,6 @@
   &.active {
     background: #FDFBDF;
     opacity: 1;
-    box-shadow: 0 0 3px 0px #000000;
-    z-index: 100;
-    position: relative;
   }
 
   .progress {
@@ -79,8 +85,7 @@
     text-decoration: none;
   }
 
-  .controls,
-  .artwork {
+  .header {
     width: 30px;
     height: 30px;
 
@@ -107,15 +112,13 @@
   &.active,
   &.selected {
 
-    .controls,
-    .artwork {
+    .header {
       width: 45px;
       height: 45px;
     }
 
     .progress {
-      display: table;
-      width: 100%;
+      display: block;
     }
 
     .duration {

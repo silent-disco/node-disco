@@ -324,7 +324,7 @@ RoomPage.prototype.toNode = function() {
 
   return this.renderPage([
     h('header.room-header', [
-      h('h1.title', 'Silent Disco'),
+      h('.title', 'Silent Disco'),
       h('.page-menu', [
         h('a.entry' + notificationsCls, {
           title: 'toggle desktop notifications',
