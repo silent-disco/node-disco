@@ -7,7 +7,7 @@ A [silent disco](https://en.wikipedia.org/wiki/Silent_disco) backend written in 
 
 ## Runtime Environment
 
-This section gives you a short overview on the required run environment. Have a look at the [setup instructions](https://github.com/silent-disco/node-disco/blob/master/docs/DEV_SETUP.md) if you would like to know how run the node disco on your machine.
+This section gives you a short overview on the required run environment. Have a look at the [setup instructions](https://github.com/silent-disco/node-disco/blob/master/resources/DEV_SETUP.md) if you would like to know how run the node disco on your machine.
 
 
 ### Redis
